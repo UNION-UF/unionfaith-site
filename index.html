@@ -373,11 +373,15 @@ h3{font:900 1.25rem/1.5 var(--f-display)}
 .recruit .sh{margin-bottom:0}
 .paybox{margin-top:clamp(1.75rem,4vw,2.75rem);padding-top:1.25rem;border-top:1px solid var(--rule)}
 .paybox__lbl{font-size:.8125rem;font-weight:500;color:var(--sub)}
-.paybox__num{margin-top:.4rem;font:900 clamp(2.4rem,7.4vw,4.25rem)/1.15 var(--f-display);font-feature-settings:"palt";letter-spacing:-.01em;color:var(--white);font-variant-numeric:tabular-nums}
-.paybox__num small{margin-left:.06em;font-size:.4em;letter-spacing:0}
-.paybox__num .to{margin-inline:.12em;font-size:.55em;color:var(--sub)}
-.paybox__num strong{font-weight:900;color:var(--green)}
-.paybox__note{margin-top:.5rem;font-size:.875rem;color:var(--sub)}
+.paybox__rows{display:grid;gap:.9rem;margin-top:.6rem}
+.paybox__rows dt{font-size:.8125rem;font-weight:700;color:var(--fg)}
+.paybox__rows .is-up dt{color:var(--green)}
+.paybox__rows dd{font:900 clamp(2.1rem,6.2vw,3.5rem)/1.1 var(--f-display);font-feature-settings:"palt";letter-spacing:-.01em;color:var(--white);font-variant-numeric:tabular-nums}
+.paybox__rows .is-up dd{color:var(--green)}
+.paybox__rows small{margin-left:.06em;font-size:.4em;letter-spacing:0}
+.paybox__rows .to{margin-inline:.12em;font-size:.55em;color:var(--sub)}
+.paybox__rows .max{margin-right:.25em;font:700 .8125rem/1 var(--f-body);letter-spacing:.04em;vertical-align:.45em}
+.paybox__note{margin-top:.75rem;font-size:.875rem;color:var(--sub)}
 .recruit h2{color:var(--white)}
 .recruit__side{display:grid;gap:1.75rem;justify-items:start}
 .recruit__side .spec{width:100%}
@@ -651,8 +655,11 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
         <p>中国・九州・沖縄を中心とした売場で、一緒に働く仲間を募集しています。働き方は、業務委託・契約社員・アルバイトから選べます。未経験の方も、先輩が現場でサポートします。</p>
         <div class="paybox">
           <p class="paybox__lbl">業務委託の報酬（日額）</p>
-          <p class="paybox__num"><span class="ph">13,500<small>円</small><span class="to">〜</span></span><strong class="ph">25,000<small>円</small></strong></p>
-          <p class="paybox__note">現場と経験によって決まります。</p>
+          <dl class="paybox__rows">
+            <div><dt>募集中の現場</dt><dd><span class="ph">13,500<small>円</small><span class="to">〜</span></span><span class="ph">15,000<small>円</small></span></dd></div>
+            <div class="is-up"><dt>経験者</dt><dd><span class="max">最大</span>25,000<small>円</small></dd></div>
+          </dl>
+          <p class="paybox__note">経験者向けの現場は、空き状況に合わせてご相談します。</p>
         </div>
       </div>
       <div class="recruit__side">
@@ -662,7 +669,7 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
           <div><dt>勤務地</dt><dd>中国・九州・沖縄の各現場<small>現在は、山口市の家電量販店で募集しています</small></dd></div>
           <div><dt>働き方</dt><dd><span class="ph">業務委託・</span><span class="ph">契約社員・</span><span class="ph">アルバイト</span><small>ご希望と経験に合わせて、面談で相談して決められます</small></dd></div>
           <div><dt>報酬・給与</dt><dd>
-            <span class="pay"><b>業務委託</b>日額13,500円〜25,000円<small>現場と経験によって決まります。山口市の家電量販店は日額13,500円〜15,000円で、月21日稼働なら月283,500円〜315,000円です</small></span>
+            <span class="pay"><b>業務委託</b>日額13,500円〜15,000円<small>月21日稼働で、月283,500円〜315,000円です。経験者は、日額25,000円までの現場もご相談いただけます（空き状況によります）</small></span>
             <span class="pay"><b>契約社員・アルバイト</b>面談でご説明します<small>勤務日数・交通費・社会保険も、あわせてご説明します</small></span>
           </dd></div>
           <div><dt>時間</dt><dd>10:00〜19:00<small>山口市の家電量販店の例です。現場によって変わります</small></dd></div>
