@@ -418,6 +418,14 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
 .form__status{font-size:.875rem;font-weight:700;color:var(--ink)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 .form__note{font-size:.8125rem;color:var(--muted)}
+.ask{display:grid;gap:.65rem;padding:1rem 1.1rem;border-left:3px solid var(--green);background:rgba(91,179,129,.08);border-radius:0 .5rem .5rem 0}
+.ask__ttl{font-size:.875rem;font-weight:700}
+.ask__chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.ask__chips button{font:500 .8125rem/1.45 var(--f-body);text-align:left;padding:.45rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--white);color:var(--ink);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.ask__chips button::before{content:"＋";margin-right:.35em;font-weight:700;color:var(--green)}
+.ask__chips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.ask__chips button[aria-pressed="true"]::before{content:"✓"}
+.ask__note{font-size:.8125rem;color:var(--muted)}
 .form__note a{color:var(--ink);text-underline-offset:.3em;text-decoration-color:var(--green);text-decoration-thickness:2px}
 @media (max-width:52rem){.contact{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:36rem){.two{grid-template-columns:minmax(0,1fr)}}
@@ -707,7 +715,10 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
           <p class="assist__ttl">業務委託がはじめての方へ</p>
           <p>確定申告など税金のことは、当社の顧問税理士に相談できます。個人で働くことに慣れていない方も、安心して始められます。</p>
         </div>
-        <a class="btn btn--fill" href="#contact" data-topic="job">応募・質問する<i aria-hidden="true">&rarr;</i></a>
+        <div class="doors">
+          <a class="btn btn--fill" href="#contact" data-topic="job">応募・質問する<i aria-hidden="true">&rarr;</i></a>
+          <a class="btn" href="#contact" data-topic="job" data-ask="casual">まずは話だけ聞いてみる<i aria-hidden="true">&rarr;</i></a>
+        </div>
       </div>
     </div>
   </section>
@@ -758,9 +769,21 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
             <label for="topic-etc"><input type="radio" name="topic" id="topic-etc" value="etc">その他</label>
           </div>
         </fieldset>
+        <div class="ask" id="ask" hidden>
+          <p class="ask__ttl">何を書けばいいか迷ったら、近いものを押してください（いくつでも）</p>
+          <div class="ask__chips">
+            <button type="button" aria-pressed="false" data-ask="casual">まずは話だけ聞いてみたい</button>
+            <button type="button" aria-pressed="false">未経験でも大丈夫か知りたい</button>
+            <button type="button" aria-pressed="false">働き方を相談したい</button>
+            <button type="button" aria-pressed="false">報酬・収入について聞きたい</button>
+            <button type="button" aria-pressed="false">勤務地や日数を相談したい</button>
+            <button type="button" aria-pressed="false">すぐにでも応募したい</button>
+          </div>
+          <p class="ask__note">押した内容が、下の「お問い合わせ内容」に入ります。応募ではなく、質問だけでも大丈夫です。電話で話したい方は、電話番号もご記入ください。</p>
+        </div>
         <div class="two">
           <div class="field"><label for="f-name">お名前<span class="req">必須</span></label><input type="text" id="f-name" name="name" autocomplete="name" required></div>
-          <div class="field"><label for="f-company">会社名</label><input type="text" id="f-company" name="company" autocomplete="organization"></div>
+          <div class="field" id="company-field"><label for="f-company">会社名</label><input type="text" id="f-company" name="company" autocomplete="organization"></div>
         </div>
         <div class="two">
           <div class="field"><label for="f-email">メールアドレス<span class="req">必須</span></label><input type="email" id="f-email" name="email" autocomplete="email" required></div>
@@ -834,7 +857,10 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
     var topic = a.getAttribute('data-topic');
     if(topic){
       var radio = document.getElementById('topic-' + topic);
-      if(radio) radio.checked = true;
+      if(radio){ radio.checked = true; radio.dispatchEvent(new Event('change', {bubbles: true})); }
+      var ask = a.getAttribute('data-ask');
+      var chip = ask ? document.querySelector('.ask__chips [data-ask="' + ask + '"]') : null;
+      if(chip && chip.getAttribute('aria-pressed') !== 'true') chip.click();
     }
     target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
   });
@@ -886,6 +912,50 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
       status.textContent = '送信できませんでした。通信状況を確認して、もう一度お試しください。';
     }).then(function(){ sendBtn.disabled = false; });
   });
+
+  /* ----- contact form: adapt to the chosen topic, and let job seekers start from a ready-made line ----- */
+  (function(){
+    var askBox = document.getElementById('ask');
+    var companyField = document.getElementById('company-field');
+    var body = document.getElementById('f-body');
+    var chips = [].slice.call(document.querySelectorAll('.ask__chips button'));
+    var hints = {
+      biz: '例）山口県内の家電量販店で、販売スタッフの配置を相談したい。',
+      job: '例）未経験ですが、まずは話を聞いてみたいです。平日の夕方なら電話に出られます。',
+      etc: ''
+    };
+    function sync(){
+      var checked = form.querySelector('input[name="topic"]:checked');
+      var t = checked ? checked.value : 'biz';
+      askBox.hidden = t !== 'job';
+      companyField.hidden = t === 'job';
+      if(t === 'job') document.getElementById('f-company').value = '';
+      body.placeholder = hints[t] || '';
+    }
+    form.addEventListener('change', function(e){ if(e.target.name === 'topic') sync(); });
+    chips.forEach(function(c){
+      c.addEventListener('click', function(){
+        var line = '・' + c.textContent.trim();
+        var on = c.getAttribute('aria-pressed') !== 'true';
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        var lines = body.value ? body.value.split('\n') : [];
+        if(on){
+          if(lines.indexOf(line) < 0){
+            var at = 0;
+            while(at < lines.length && lines[at].indexOf('・') === 0) at++;
+            lines.splice(at, 0, line);
+          }
+        }else{
+          lines = lines.filter(function(l){ return l !== line; });
+        }
+        body.value = lines.join('\n');
+      });
+    });
+    form.addEventListener('reset', function(){
+      setTimeout(function(){ chips.forEach(function(c){ c.setAttribute('aria-pressed', 'false'); }); sync(); }, 0);
+    });
+    sync();
+  })();
 
   /* ----- statement: split into characters so it can fill in on scroll ----- */
   var stmt = document.getElementById('stmt');
