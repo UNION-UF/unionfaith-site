@@ -842,8 +842,8 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   /* ----- contact form (preview) ----- */
   var form = document.getElementById('contact-form');
   var status = document.getElementById('form-status');
-  /* お問い合わせはWeb3Forms経由でメールに届く。キーはWeb3Formsで発行されたものに置き換える */
-  var WEB3FORMS_KEY = 'WEB3FORMS_ACCESS_KEY';
+  /* お問い合わせはWeb3Forms経由で k.okamoto@unionfaith.jp に届く（キーは公開して問題ないもの） */
+  var WEB3FORMS_KEY = '83aebbd1-5cfd-49c7-a9f6-3945ddcf65cb';
   var sendBtn = form.querySelector('button[type="submit"]');
   var topicNames = {biz: '企業としての相談', job: '採用への応募・質問', etc: 'その他'};
   form.addEventListener('submit', function(e){
