@@ -27,7 +27,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+Antique:wght@900&text=%2C0123456789ABCEGHIMNOPRSTUVY%E2%80%9C%E3%80%81%E3%80%82%E3%80%9C%E3%81%84%E3%81%8A%E3%81%8B%E3%81%8C%E3%81%8D%E3%81%8F%E3%81%91%E3%81%92%E3%81%93%E3%81%94%E3%81%95%E3%81%97%E3%81%99%E3%81%9A%E3%81%9B%E3%81%9D%E3%81%9F%E3%81%A0%E3%81%A1%E3%81%A3%E3%81%A4%E3%81%A5%E3%81%A6%E3%81%A7%E3%81%A8%E3%81%AA%E3%81%AB%E3%81%AE%E3%81%AF%E3%81%B2%E3%81%BE%E3%81%BF%E3%82%81%E3%82%84%E3%82%89%E3%82%8A%E3%82%8B%E3%82%8C%E3%82%8F%E3%82%92%E3%82%A4%E3%82%B9%E3%82%BF%E3%83%81%E3%83%83%E3%83%88%E3%83%95%E3%83%99%E3%83%A0%E3%83%B3%E3%83%BB%E3%83%BC%E4%B8%80%E4%B8%89%E4%B8%8A%E4%BA%8B%E4%BA%BA%E4%BB%95%E4%BB%A4%E4%BB%B2%E4%BB%BB%E4%BC%9A%E4%BF%83%E5%80%8B%E5%83%8D%E5%84%AA%E5%85%88%E5%85%A8%E5%86%85%E5%86%86%E5%87%BA%E5%8A%9B%E5%8B%99%E5%8F%8B%E5%8F%97%E5%8F%AF%E5%90%88%E5%90%8D%E5%95%8F%E5%9B%BD%E5%9C%B0%E5%9E%8B%E5%9F%9F%E5%A0%B1%E5%A0%B4%E5%A3%B0%E5%A3%B2%E5%A7%94%E5%AE%88%E5%AE%B6%E5%AE%B9%E5%B8%AF%E5%B9%B4%E5%BA%95%E5%BA%97%E5%BC%95%E5%BC%B5%E5%BC%B7%E6%80%A7%E6%83%85%E6%89%80%E6%8E%A1%E6%8E%A2%E6%8F%B4%E6%90%BA%E6%94%AF%E6%94%BE%E6%96%B0%E6%97%8F%E6%9C%80%E6%A5%AD%E6%A6%82%E6%AD%A3%E6%B3%95%E6%B4%BB%E7%82%B9%E7%86%B1%E7%8F%BE%E7%90%86%E7%94%A8%E7%94%B1%E7%99%BA%E7%9F%A5%E7%A4%BE%E7%A7%81%E7%AB%8B%E7%B7%92%E8%81%9E%E8%82%B2%E8%83%B8%E8%83%BD%E8%88%97%E8%A6%81%E8%A6%8F%E8%A7%A3%E8%A8%97%E8%A9%B1%E8%B2%A9%E9%80%B2%E9%81%B5%E9%87%8F%E9%95%B7%E9%96%93&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&text=ABCEGHIMNOPRSTUVYabceghimnoprstuvy&display=swap">
 <style>
 img{max-width:100%}
 [hidden]{display:none!important}
@@ -514,25 +513,9 @@ fieldset{border:0;padding:0;margin:0;min-width:0}
 .gw{display:none}
 .fx .gw{display:block;position:absolute;left:0;top:clamp(.5rem,3vw,2.5rem);z-index:0;font:900 clamp(6.5rem,26vw,22rem)/1 var(--f-display);letter-spacing:-.02em;white-space:nowrap;color:transparent;-webkit-text-stroke:1.5px rgba(91,179,129,.55);pointer-events:none;transform:translate3d(var(--gx,0px),0,0);will-change:transform}
 
-/* =================== heading + motion style A（英字の大見出し＋日本語の小見出し、落ち着いた動き） =================== */
-.label{display:grid;justify-items:start;gap:.75rem}
-.label .label__en{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.06em;font:600 clamp(2.5rem,10.5vw,4.75rem)/1 "Montserrat",var(--f-body);white-space:nowrap;overflow-wrap:normal;word-break:normal;max-width:100%;font-size:min(clamp(2.5rem,10.5vw,4.75rem),16.5cqi);letter-spacing:.005em;text-transform:uppercase;color:var(--fg)}
-.label .label__en span{display:block;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
-.label .label__ja{font:700 .875rem/1.4 var(--f-body);letter-spacing:.1em;color:var(--green)}
-.sh{gap:1.1rem;container-type:inline-size}
-.sh h2{font-size:clamp(1.375rem,4.6vw,2.375rem);line-height:1.5}
-.fx .sh h2{padding-bottom:0}
-.fx .sh h2::after{display:none}
-/* motion: the English word rises, then the Japanese lines fade up */
-.fx .sh .label__en span{transform:translateY(105%);transition:transform 1s var(--ease)}
-.fx .sh.is-in .label__en span{transform:none}
-.fx .sh .label__ja,.fx .sh h2,.fx .sh > p,.fx .sh .paybox{opacity:0;transform:translateY(16px);transition:opacity .9s ease,transform .9s var(--ease)}
-.fx .sh.is-in .label__ja{opacity:1;transform:none;transition-delay:.2s}
-.fx .sh.is-in h2{opacity:1;transform:none;transition-delay:.35s}
-.fx .sh.is-in > p,.fx .sh.is-in .paybox{opacity:1;transform:none;transition-delay:.5s}
-/* hero: lines slide up as whole lines instead of character by character */
-.fx .ln > span{animation:rise .95s var(--ease) both;animation-delay:calc(.15s + var(--i) * .12s)}
-/* photos: a soft green light sweeps across, and the picture fades in right behind it (gradient edge, no hard panel) */
+/* ---------- section labels: the Japanese translation sits beside the English word in the corporate green ---------- */
+.label span{color:var(--green)}
+/* ---------- photos: a soft green light sweeps across, and the picture fades in right behind it ---------- */
 .wipe{position:relative}
 .fx .wipe img{
   -webkit-mask-image:linear-gradient(90deg,#000 0 40%,transparent 60% 100%);mask-image:linear-gradient(90deg,#000 0 40%,transparent 60% 100%);
@@ -651,7 +634,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   <section class="sec" id="business">
     <div class="wrap">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Business</span></span><span class="label__ja">企業の方へ</span></p>
+        <p class="label">Business<span>企業の方へ</span></p>
         <h2><span class="ph">売場づくりを、</span><span class="ph">チームごと</span><span class="ph">引き受けます。</span></h2>
         <p>採用も、教育も、日々のマネジメントも。売場はまるごと任せてください。</p>
       </div>
@@ -702,7 +685,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   <section class="sec sec--white" id="strength">
     <div class="wrap">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Strength</span></span><span class="label__ja">強み</span></p>
+        <p class="label">Strength<span>強み</span></p>
         <h2><span class="ph">長く任せて</span><span class="ph">いただける、</span><span class="ph">三つの理由。</span></h2>
       </div>
       <ul class="why">
@@ -725,7 +708,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   <section class="sec" id="voices">
     <div class="wrap">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Voices</span></span><span class="label__ja">スタッフの声</span></p>
+        <p class="label">Voices<span>スタッフの声</span></p>
         <h2><span class="ph">働く人に、</span><span class="ph">聞きました。</span></h2>
       </div>
     </div>
@@ -793,7 +776,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
     </script>
     <div class="wrap recruit">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Recruit</span></span><span class="label__ja">採用情報</span></p>
+        <p class="label">Recruit<span>採用情報</span></p>
         <h2><span class="ph">家族や友人に、</span><span class="ph">胸を張れる</span><span class="ph">仕事を。</span></h2>
         <p>現場の力で、社会を底上げする。そのチームの一員に、ぜひ加わってください。</p>
         <div class="paybox">
@@ -832,7 +815,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   <section class="sec" id="company">
     <div class="wrap">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Company</span></span><span class="label__ja">会社概要</span></p>
+        <p class="label">Company<span>会社概要</span></p>
         <h2><span class="ph">一人ひとりの</span><span class="ph">可能性を、</span><span class="ph">現場から</span><span class="ph">解き放つ。</span></h2>
       </div>
       <div class="company">
@@ -861,7 +844,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   <section class="sec sec--white" id="contact">
     <div class="wrap contact">
       <div class="sh">
-        <p class="label"><span class="label__en"><span>Contact</span></span><span class="label__ja">お問い合わせ</span></p>
+        <p class="label">Contact<span>お問い合わせ</span></p>
         <h2><span class="ph">まず、話を</span><span class="ph">聞かせて</span><span class="ph">ください。</span></h2>
         <p>ご相談も、採用への応募も、こちらから。</p>
       </div>
@@ -1356,6 +1339,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   }
 
   /* ----- hero characters ----- */
+  split(document.querySelector('.hero h1'), .05, .045);
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ root.classList.add('fx-go'); }); });
 
   /* ----- section headings + giant words + label scramble ----- */
@@ -1372,6 +1356,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   var giants = [], heads = [].slice.call(document.querySelectorAll('.sh'));
   heads.forEach(function(sh){
     var h2 = sh.querySelector('h2');
+    if(h2) split(h2, 0, .035);
     var label = sh.querySelector('.label'), tn = label && label.firstChild;
     var word = tn && tn.nodeType === 3 ? tn.textContent.trim() : '';
     var sec = sh.closest('section');
@@ -1394,7 +1379,7 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   }, { rootMargin: '0px 0px -10% 0px', threshold: .3 });
   heads.forEach(function(sh){ io.observe(sh); });
 
-  /* photos: reveal with a green wipe when they come into view */
+  /* photos: reveal with a soft green sweep when they come into view */
   var wipes = [].slice.call(document.querySelectorAll('.photo, .card__photo, .band'));
   var wio = new IntersectionObserver(function(entries){
     entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('is-in'); wio.unobserve(en.target); } });
