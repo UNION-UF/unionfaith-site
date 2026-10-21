@@ -404,6 +404,15 @@ h3{font:900 1.25rem/1.5 var(--f-display)}
   @keyframes beat{0%,100%{opacity:1;transform:none}50%{opacity:.35;transform:scale(.7)}}
 }
 @media (max-width:52rem){.urgent{grid-template-columns:minmax(0,1fr);align-items:start}}
+/* トップの急募の帯（#urgent と同じ期限で自動で隠れる） */
+#urgent{scroll-margin-top:5rem}
+.notice{display:block;text-decoration:none;border-bottom:1px solid var(--green)}
+.notice__in{display:flex;align-items:center;gap:.4rem .85rem;min-height:3rem;padding-block:.55rem;font-size:.875rem;font-weight:700;line-height:1.5}
+.notice .urgent__tag b{padding:.05rem .7rem;font-size:.75rem}
+.notice__txt{flex:1;min-width:0}
+.notice__txt small{margin-left:.6em;font-size:.8125rem;font-weight:500;color:var(--sub)}
+.notice__go{flex:none;display:grid;place-items:center;width:1.9rem;height:1.9rem;border-radius:50%;font:500 .875rem/1 var(--f-mono);font-style:normal;color:var(--ink);background:var(--on-ink);transition:transform .4s var(--ease)}
+@media (hover:hover){.notice:hover .notice__go{transform:rotate(-45deg)}.notice:hover .notice__txt span{text-decoration:underline;text-underline-offset:.2em}}
 
 /* ---------- company ---------- */
 .company{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(2rem,5vw,4rem);align-items:start}
@@ -547,6 +556,22 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
 </div>
 
 <main id="top">
+
+  <!-- 急募の帯：採用情報の #urgent と同じく、data-until の日時を過ぎると自動で非表示になる -->
+  <a class="notice on-ink" id="notice" href="#urgent" data-until="2026-11-01T00:00:00+09:00">
+    <span class="wrap wrap--wide notice__in">
+      <span class="urgent__tag"><b>急募</b></span>
+      <span class="notice__txt"><span class="ph">エディオン山口本店の</span><span class="ph">au売場スタッフ</span><small class="ph">10月31日まで</small></span>
+      <i class="notice__go" aria-hidden="true">&rarr;</i>
+    </span>
+  </a>
+  <script>
+  (function(){
+    var n = document.getElementById('notice');
+    var end = n && Date.parse(n.getAttribute('data-until'));
+    if(n && end && Date.now() >= end){ n.hidden = true; }
+  })();
+  </script>
 
   <section class="hero on-ink" id="hero">
     <canvas id="ink" aria-hidden="true"></canvas>
