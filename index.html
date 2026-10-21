@@ -380,6 +380,31 @@ h3{font:900 1.25rem/1.5 var(--f-display)}
 .recruit__side .spec{width:100%}
 @media (max-width:52rem){.recruit{grid-template-columns:minmax(0,1fr)}}
 
+/* ---------- urgent opening (期限つき。data-until を過ぎると自動で隠れる) ---------- */
+.urgent{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.5rem clamp(2rem,5vw,4rem);align-items:center;
+  margin-bottom:clamp(3rem,8vw,5.5rem);padding:clamp(1.5rem,4vw,2.5rem);
+  background:var(--ink);border:1.5px solid var(--green);border-radius:var(--r-panel);
+  box-shadow:0 0 0 6px var(--green-glow);
+}
+.urgent__tag{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .9rem}
+.urgent__tag b{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.2rem .85rem;border-radius:999px;
+  font:800 .875rem/1.6 var(--f-body);letter-spacing:.12em;color:var(--ink);background:var(--green);
+}
+.urgent__tag b::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--ink)}
+.urgent__tag span{font-size:.875rem;font-weight:700;color:var(--sub)}
+.urgent__ttl{margin-top:1rem;font:800 clamp(1.625rem,5vw,2.5rem)/1.35 var(--f-body);letter-spacing:.01em;color:var(--white)}
+.urgent__ttl small{display:block;margin-top:.15rem;font-size:.55em;font-weight:700;color:var(--green)}
+.urgent__lead{margin-top:.85rem;max-width:30em;color:var(--sub)}
+.urgent__side{display:grid;gap:1.5rem;justify-items:start}
+.urgent__side .spec{width:100%}
+@media (prefers-reduced-motion:no-preference){
+  .urgent__tag b::before{animation:beat 1.6s ease-in-out infinite}
+  @keyframes beat{0%,100%{opacity:1;transform:none}50%{opacity:.35;transform:scale(.7)}}
+}
+@media (max-width:52rem){.urgent{grid-template-columns:minmax(0,1fr);align-items:start}}
+
 /* ---------- company ---------- */
 .company{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(2rem,5vw,4rem);align-items:start}
 .msg{display:grid;gap:1.1rem}
@@ -679,6 +704,32 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
   </section>
 
   <section class="sec on-ink" id="recruit">
+    <!-- 急募：エディオン山口本店（2026年10月31日まで）。data-until の日時を過ぎると自動で非表示になる。延長するときは data-until と「◯月◯日まで」の両方を書き換える -->
+    <div class="wrap" id="urgent" data-until="2026-11-01T00:00:00+09:00">
+      <article class="urgent" aria-labelledby="urgent-ttl">
+        <div>
+          <p class="urgent__tag"><b>急募</b><span>掲載は10月31日（土）まで</span></p>
+          <h3 class="urgent__ttl" id="urgent-ttl"><span class="ph">エディオン</span><span class="ph">山口本店</span><small>au売場の販売スタッフ</small></h3>
+          <p class="urgent__lead">エディオン山口本店のau売場で、一緒に働く方を急いで探しています。未経験の方も、先輩が売場でサポートします。</p>
+        </div>
+        <div class="urgent__side">
+          <dl class="spec">
+            <div><dt>報酬</dt><dd><span class="ph">日額13,500円〜</span><span class="ph">15,000円</span><small>業務委託の場合。月21日稼働で、<span class="ph">月283,500円〜</span><span class="ph">315,000円です</span></small></dd></div>
+            <div><dt>時間</dt><dd>10:00〜19:00</dd></div>
+            <div><dt>働き方</dt><dd><span class="ph">業務委託・</span><span class="ph">契約社員・</span><span class="ph">アルバイト</span><small>契約社員・アルバイトの条件は、面談でご説明します</small></dd></div>
+            <div><dt>場所</dt><dd>エディオン山口本店<small>山口県山口市平井</small></dd></div>
+          </dl>
+          <a class="btn btn--fill" href="#contact" data-topic="job" data-line="エディオン山口本店（au）の急募に応募したい">この求人に応募する<i aria-hidden="true">&rarr;</i></a>
+        </div>
+      </article>
+    </div>
+    <script>
+    (function(){
+      var u = document.getElementById('urgent');
+      var end = u && Date.parse(u.getAttribute('data-until'));
+      if(u && end && Date.now() >= end){ u.hidden = true; }
+    })();
+    </script>
     <div class="wrap recruit">
       <div class="sh">
         <p class="label">Recruit<span>採用情報</span></p>
@@ -855,6 +906,14 @@ if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
       var ask = a.getAttribute('data-ask');
       var chip = ask ? document.querySelector('.ask__chips [data-ask="' + ask + '"]') : null;
       if(chip && chip.getAttribute('aria-pressed') !== 'true') chip.click();
+      /* 急募などのボタンから来たときは、どの求人への応募かを本文の先頭に入れておく */
+      var extra = a.getAttribute('data-line');
+      var bodyEl = document.getElementById('f-body');
+      if(extra && bodyEl){
+        var ln = '・' + extra;
+        var cur = bodyEl.value ? bodyEl.value.split('\n') : [];
+        if(cur.indexOf(ln) < 0){ cur.unshift(ln); bodyEl.value = cur.join('\n'); }
+      }
     }
     target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
   });
