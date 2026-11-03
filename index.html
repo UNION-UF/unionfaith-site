@@ -271,15 +271,26 @@ h2{margin-top:1.75rem;font:600 clamp(1.5rem,3.4vw,2.625rem)/1.65 var(--serif);le
 /* ---------- company ---------- */
 .band{position:relative;overflow:hidden;height:clamp(16rem,48vw,36rem)}
 .band img{position:absolute;left:0;top:-10%;width:100%;height:120%;object-fit:cover;transform:translate3d(0,var(--py,0px),0)}
-.co{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:clamp(2.5rem,7vw,7rem);margin-top:clamp(3.5rem,8vw,5rem)}
-.msg .big{margin-top:1.25rem;font:600 clamp(1.375rem,2.6vw,1.75rem)/1.9 var(--serif);letter-spacing:.1em}
-.msg p + p{margin-top:1.5rem}
-.msg .big + .body{margin-top:2rem}
-.msg .body + .body{margin-top:1.25rem}
-.msg .body{font:500 1rem/2.3 var(--serif);letter-spacing:.08em;color:#3A3A38}
-.sign{margin-top:2.5rem;font-size:.8125rem;letter-spacing:.12em;color:var(--sub)}
-.sign b{display:block;margin-top:.25rem;font:600 1.25rem/1.6 var(--serif);letter-spacing:.2em;color:var(--ink)}
-@media (max-width:48rem){.co{grid-template-columns:minmax(0,1fr)}}
+.co{max-width:52rem;margin-top:clamp(3rem,7vw,4.5rem)}
+/* ---------- president's message: its own section, lots of air, lines appear one by one ---------- */
+.msec{padding-block:clamp(6rem,14vw,11rem)}
+.msec__in{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:clamp(2.5rem,7vw,7rem);align-items:start}
+.msec__head{position:sticky;top:calc(var(--hd) + 3rem);display:grid;justify-items:start;gap:2.25rem}
+.msec__ttl{margin:0;writing-mode:vertical-rl;font:600 clamp(2rem,3.4vw,2.875rem)/1.9 var(--serif);letter-spacing:.24em;white-space:nowrap}
+.msec__body{display:grid;gap:clamp(2.25rem,4.5vw,3rem);padding-top:3.25rem}
+.ms{display:grid;gap:.15rem;font:500 clamp(1rem,1.5vw,1.125rem)/2.3 var(--serif);letter-spacing:.08em;color:#2E2E2C}
+.ms > span{display:block}
+.ms--last{margin-top:clamp(1rem,3vw,2rem);padding-top:clamp(2rem,4vw,2.75rem);border-top:1px solid var(--line)}
+.ms--last span:first-child{font:600 clamp(1.5rem,3vw,2.125rem)/1.8 var(--serif);letter-spacing:.14em;color:var(--ink)}
+.ms--last span:last-child{margin-top:.35rem;color:var(--sub)}
+.sign{margin-top:clamp(1rem,3vw,1.75rem);font-size:.8125rem;letter-spacing:.12em;color:var(--sub)}
+.sign b{display:block;margin-top:.25rem;font:600 1.375rem/1.6 var(--serif);letter-spacing:.24em;color:var(--ink)}
+@media (max-width:48rem){
+  .msec__in{grid-template-columns:minmax(0,1fr)}
+  .msec__head{position:static}
+  .msec__ttl{writing-mode:horizontal-tb;white-space:normal;font-size:1.75rem;letter-spacing:.1em}
+  .msec__body{padding-top:0}
+}
 
 /* ---------- contact ---------- */
 .ct{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(2.5rem,7vw,7rem)}
@@ -327,6 +338,7 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 /* =================== motion =================== */
 .js [data-rv]{opacity:0;transform:translateY(22px);transition:opacity 1.2s var(--ease),transform 1.4s var(--ease);transition-delay:var(--dl,0s)}
 .js [data-rv].in{opacity:1;transform:none}
+.js .ms [data-rv]{transform:translateY(12px);transition-duration:1.6s,1.6s}
 .js .m > span{transform:translateY(105%);transition:transform 1.4s var(--ease);transition-delay:var(--dl,0s)}
 .js .in .m > span{transform:none}
 .js .hero h1 .m > span{transform:translateY(-105%)}
@@ -643,24 +655,35 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
     </div>
   </section>
 
-  <section id="company" aria-labelledby="co-ttl">
-    <figure class="band" id="band" data-rv-img><img src="img/sea-1800.webp" srcset="img/sea-900.webp 900w, img/sea-1800.webp 1800w" sizes="100vw" width="1800" height="1005" alt="夜明けの瀬戸内海と、霧の中の島々" loading="lazy"></figure>
-    <div class="sec" style="padding-top:clamp(4.5rem,10vw,8rem)">
+  <section id="company" aria-labelledby="msg-ttl">
+    <figure class="band" id="band"><img src="img/sea-1800.webp" srcset="img/sea-900.webp 900w, img/sea-1800.webp 1800w" sizes="100vw" width="1800" height="1005" alt="夜明けの瀬戸内海と、霧の中の島々" loading="lazy"></figure>
+
+    <!-- 代表メッセージ：独立した欄にして余白を大きく取り、一行ずつ現れる -->
+    <div class="sec msec" id="message">
+      <div class="wrap msec__in">
+        <div class="msec__head" data-rv>
+          <p class="lb">Message<span class="ja">代表メッセージ</span></p>
+          <h2 class="msec__ttl" id="msg-ttl"><span class="m"><span>動いた分だけ、</span></span><span class="m" style="--dl:.2s"><span>道は増えた。</span></span></h2>
+        </div>
+        <div class="msec__body">
+          <p class="ms"><span data-rv style="--dl:0.00s">自分には、人よりチャンスが少ない。</span><span data-rv style="--dl:0.12s">長いあいだ、そう思って生きてきました。</span></p>
+          <p class="ms"><span data-rv style="--dl:0.00s">それでも、動くことだけはやめなかった。</span><span data-rv style="--dl:0.12s">気づけば、道は増えていました。</span><span data-rv style="--dl:0.24s">今の私は、その先にいます。</span></p>
+          <p class="ms"><span data-rv style="--dl:0.00s"><span class="ph">情報があふれる今は、</span><span class="ph">動く前に答えを知った気になれてしまう。</span></span><span data-rv style="--dl:0.12s">だから、やる前に諦めてしまう人がいる。</span><span data-rv style="--dl:0.24s"><span class="ph">やってみて、</span><span class="ph">想像と違ったと立ち止まる人もいる。</span></span></p>
+          <p class="ms"><span data-rv style="--dl:0.00s"><span class="ph">けれど、想像と違ったと感じたその場所こそが、</span><span class="ph">本当のスタートラインです。</span></span><span data-rv style="--dl:0.12s">私はそれを、身をもって知っています。</span></p>
+          <p class="ms"><span data-rv style="--dl:0.00s"><span class="ph">だから、</span><span class="ph">一歩目の背中を押す人でありたい。</span></span><span data-rv style="--dl:0.12s"><span class="ph">踏み出したその先を、</span><span class="ph">一緒に走れる人でありたい。</span></span></p>
+          <p class="ms ms--last"><span data-rv>一人で、走らせない。</span><span data-rv style="--dl:.25s">それが、Union Faithの約束です。</span></p>
+          <p class="sign" data-rv>代表取締役<b>岡本 光平</b></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" style="padding-top:0">
       <div class="wrap">
         <div data-rv>
           <p class="lb">Company<span class="ja">会社概要</span></p>
           <h2 id="co-ttl"><span class="m"><span>一人ひとりの可能性を、</span></span><span class="m" style="--dl:.12s"><span>現場から解き放つ。</span></span></h2>
         </div>
         <div class="co">
-          <div class="msg" data-rv>
-            <p class="mini">代表メッセージ</p>
-            <p class="big">思い描く力ごと、支えたい。</p>
-            <p class="body">私は、いわゆる順調な道を歩いてきたわけではありません。自分には、人よりチャンスが少ない。長いあいだ、そう思い込んで生きてきました。</p>
-            <p class="body">けれど振り返れば、そんなことはありませんでした。道は、思っていたよりずっと多くあったのです。</p>
-            <p class="body">情報があふれる今、やる前に諦めてしまう人がいます。やってみて、想像と違ったと手を離してしまう人もいます。私は、そういう人たちのいちばんの理解者でありたい。</p>
-            <p class="body">思い描く人生を実現すること。そして、その人生を思い描く力そのものも、一緒に育てていくこと。Union Faithは、そのための場所です。</p>
-            <p class="sign">代表取締役<b>岡本 光平</b></p>
-          </div>
           <dl class="spec" data-rv>
             <div><dt>会社名</dt><dd>Union Faith株式会社</dd></div>
             <div><dt>代表者</dt><dd>代表取締役　岡本光平</dd></div>
