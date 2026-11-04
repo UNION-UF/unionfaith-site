@@ -113,7 +113,7 @@
       e.preventDefault();
       var fd = new FormData(form);
       if (fd.get('botcheck')) return;
-      var payload = { access_key: KEY, subject: '【携帯販売ワーク】' + form.dataset.subject + '(' + (fd.get('お名前') || fd.get('担当者名') || '') + ' 様)', from_name: '携帯販売ワーク(Union Faith株式会社)' };
+      var payload = { access_key: KEY, subject: '【ハナシゴト】' + form.dataset.subject + '(' + (fd.get('お名前') || fd.get('担当者名') || '') + ' 様)', from_name: 'ハナシゴト(Union Faith株式会社)' };
       if (fd.get('メールアドレス')) payload.replyto = fd.get('メールアドレス');
       fd.forEach(function (v, k) { if (k !== 'botcheck') payload[k] = v; });
       btn.disabled = true; status.textContent = '送信しています…';
