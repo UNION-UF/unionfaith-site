@@ -11,13 +11,32 @@
     '九州・沖縄': ['福岡', '佐賀', '長崎', '熊本', '大分', '宮崎', '鹿児島', '沖縄']
   };
   var JOBS = [{
-    tag: '募集中',
+    tag: '常勤',
     title: '量販店の携帯販売スタッフ',
-    region: '中国', pref: '山口', place: '山口県山口市',
+    region: '中国', prefs: ['山口'], place: '山口県山口市',
     shop: '家電量販店 / au・UQ mobile',
     styles: ['業務委託', '契約社員', 'アルバイト'],
-    pay: '業務委託 日額13,000円〜25,000円',
+    work: '業務委託（雇用の相談も可）',
+    pay: '日額13,000円〜',
     href: 'job-yamaguchi.html'
+  }, {
+    tag: '経験者のみ',
+    title: 'ソフトバンク経験者の携帯販売スタッフ',
+    region: '九州・沖縄', prefs: ['福岡', '佐賀', '熊本'], place: '福岡・佐賀・熊本',
+    shop: 'ソフトバンク',
+    styles: ['業務委託', '契約社員', 'アルバイト'],
+    work: '業務委託（雇用の相談も可）',
+    pay: '日額18,500円〜25,000円 × 月21日',
+    href: 'job-kyushu-softbank.html'
+  }, {
+    tag: '移動型 / 経験者のみ',
+    title: 'ドコモの携帯販売 移動型スタッフ',
+    region: '中国', prefs: ['山口'], place: '山口県内',
+    shop: 'ドコモ / 交通費・宿泊費あり',
+    styles: ['業務委託', '契約社員', 'アルバイト'],
+    work: '業務委託（雇用の相談も可）',
+    pay: '日額20,000円〜23,000円',
+    href: 'job-yamaguchi-docomo.html'
   }];
   var STYLES = ['すべて', '業務委託', '契約社員', 'アルバイト'];
 
@@ -45,7 +64,7 @@
   }
   function matches(j) {
     return (state.area === '全国' || j.region === state.area) &&
-      (state.pref === 'すべて' || j.pref === state.pref) &&
+      (state.pref === 'すべて' || j.prefs.indexOf(state.pref) >= 0) &&
       (state.style === 'すべて' || j.styles.indexOf(state.style) >= 0);
   }
   function jobRow(j) {
@@ -55,7 +74,7 @@
     var title = document.createElement('span'); title.className = 'job__title'; title.textContent = j.title;
     main.appendChild(tag); main.appendChild(title);
     var meta = document.createElement('span'); meta.className = 'job__meta';
-    [j.place, j.shop, j.styles.join('・')].forEach(function (t) { var s = document.createElement('span'); s.textContent = t; meta.appendChild(s); });
+    [j.place, j.shop, j.work].forEach(function (t) { var s = document.createElement('span'); s.textContent = t; meta.appendChild(s); });
     var pay = document.createElement('span'); pay.className = 'job__pay'; pay.textContent = j.pay;
     var arrow = document.createElement('span'); arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '→';
     [main, meta, pay, arrow].forEach(function (n) { a.appendChild(n); });
