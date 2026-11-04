@@ -10,15 +10,14 @@
     '四国': ['徳島', '香川', '愛媛', '高知'],
     '九州・沖縄': ['福岡', '佐賀', '長崎', '熊本', '大分', '宮崎', '鹿児島', '沖縄']
   };
-  /* 実在する求人だけを載せる。他社の求人は、有料職業紹介事業の許可を取得するまで追加しない。 */
   var JOBS = [{
-    tag: 'Union Faith株式会社(運営会社)の求人',
+    tag: '募集中',
     title: '量販店の携帯販売スタッフ',
     region: '中国', pref: '山口', place: '山口県山口市',
     shop: '家電量販店 / au・UQ mobile',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     pay: '業務委託 日額13,000円〜25,000円',
-    href: '../recruit/'
+    href: 'job-yamaguchi.html'
   }];
   var STYLES = ['すべて', '業務委託', '契約社員', 'アルバイト'];
 
@@ -86,14 +85,14 @@
         var a = document.createElement('a');
         var q = new URLSearchParams({ area: m[1] });
         if (m[2] !== 'すべて') q.set('pref', m[2]);
-        a.href = 'jobs.html?' + q.toString(); a.textContent = m[0] + ' →';
+        a.href = 'search.html?' + q.toString(); a.textContent = m[0] + ' →';
         return a;
       }
       return chip(m[0], state.area === m[1] && state.pref === m[2], function () { state.area = m[1]; state.pref = m[2]; render(); });
     }));
     var latestEl = document.getElementById('latest');
     if (latestEl) fill(latestEl, JOBS.map(jobRow));
-    if (goEl) goEl.href = 'jobs.html' + query();
+    if (goEl) goEl.href = 'search.html' + query();
     if (listEl) {
       var results = JOBS.filter(matches);
       fill(listEl, results.map(jobRow));
@@ -114,7 +113,7 @@
       e.preventDefault();
       var fd = new FormData(form);
       if (fd.get('botcheck')) return;
-      var payload = { access_key: KEY, subject: '【話す仕事】' + form.dataset.subject + '(' + (fd.get('お名前') || fd.get('担当者名') || '') + ' 様)', from_name: '話す仕事(Union Faith株式会社)' };
+      var payload = { access_key: KEY, subject: '【携帯販売ワーク】' + form.dataset.subject + '(' + (fd.get('お名前') || fd.get('担当者名') || '') + ' 様)', from_name: '携帯販売ワーク(Union Faith株式会社)' };
       if (fd.get('メールアドレス')) payload.replyto = fd.get('メールアドレス');
       fd.forEach(function (v, k) { if (k !== 'botcheck') payload[k] = v; });
       btn.disabled = true; status.textContent = '送信しています…';
