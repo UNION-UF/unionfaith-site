@@ -126,6 +126,12 @@ h2{margin-top:1.75rem;font:600 clamp(1.5rem,3.4vw,2.625rem)/1.65 var(--serif);le
 .hero__say{display:grid;gap:.35rem}
 .hero__say strong{font:600 1.0625rem/1.8 var(--serif);letter-spacing:.06em}
 .hero__say span{font-size:.8125rem;line-height:1.9;color:var(--sub)}
+.opsite{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem 1.5rem;padding:1.15rem var(--gut);border-block:1px solid var(--line);background:var(--green-soft);text-decoration:none;transition:background-color .3s}
+.opsite:hover{background:#dfeee8}
+.opsite small{font-size:.75rem;font-weight:700;letter-spacing:.14em;color:var(--green)}
+.opsite b{font:500 1.25rem/1.5 var(--serif);letter-spacing:.06em}
+.opsite span{font-size:.875rem;color:var(--sub)}
+.opsite i{margin-left:auto;font-style:normal;font-family:var(--en);color:var(--green)}
 .hero__doors{display:flex;flex-wrap:wrap;gap:.5rem 2rem}
 .hero__scroll{position:absolute;left:calc(41.667% - 2.25rem);bottom:clamp(2rem,5vw,3.5rem);display:flex;align-items:center;gap:.9rem;writing-mode:vertical-rl;font:400 .625rem/1 var(--en);letter-spacing:.3em;text-transform:uppercase;color:var(--sub)}
 .hero__scroll::after{content:"";width:1px;height:4.5rem;background:linear-gradient(var(--green),var(--green)) no-repeat 0 0/1px 100%,var(--line);animation:cue 2.6s var(--ease) infinite}
@@ -392,7 +398,8 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
     <a href="#voices" style="--i:2">スタッフの声<small>Voices</small></a>
     <a href="#recruit" style="--i:3">採用情報<small>Recruit</small></a>
     <a href="#company" style="--i:4">会社概要<small>Company</small></a>
-    <a href="#contact" style="--i:5">お問い合わせ<small>Contact</small></a>
+    <a href="hanasu/" style="--i:5">話す仕事<small>Job site</small></a>
+    <a href="#contact" style="--i:6">お問い合わせ<small>Contact</small></a>
   </nav>
   <p class="menu__foot">全国対応・特に中国・九州・沖縄</p>
 </div>
@@ -416,10 +423,13 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
       <div class="hero__doors">
         <a class="ln" href="#business">企業の方へ<i aria-hidden="true">&rarr;</i></a>
         <a class="ln" href="#recruit">働きたい方へ<i aria-hidden="true">&rarr;</i></a>
+        <a class="ln" href="hanasu/">求人サイト「話す仕事」<i aria-hidden="true">&rarr;</i></a>
       </div>
     </div>
     <p class="hero__scroll" aria-hidden="true">Scroll</p>
   </section>
+
+  <a class="opsite" href="hanasu/"><small>運営サイト</small><b>話す仕事</b><span>携帯販売の仕事を探す人のための求人サイト</span><i aria-hidden="true">&rarr;</i></a>
 
   <section class="sec about" aria-labelledby="about-ttl">
     <img class="about__mark" id="mark" src="img/logo-mark-light-1400.webp" width="1400" height="979" alt="" aria-hidden="true" loading="lazy">
@@ -764,6 +774,7 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
         <a href="#company">会社概要</a>
         <a href="#voices">スタッフの声</a>
         <a href="#contact">お問い合わせ</a>
+        <a href="hanasu/">話す仕事（求人サイト）</a>
         <a href="privacy.html">プライバシーポリシー</a>
       </nav>
     </div>

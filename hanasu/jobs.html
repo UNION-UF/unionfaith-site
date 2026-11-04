@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>仕事を探す｜話す仕事（携帯販売の求人サイト）</title>
+<meta name="description" content="携帯販売の仕事を、全国から地方、県へと絞って探せます。業務委託、契約社員、アルバイトで絞り込めます。">
+<link rel="canonical" href="https://unionfaith.jp/hanasu/jobs.html">
+<meta name="theme-color" content="#FFFFFF">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="話す仕事">
+<meta property="og:title" content="仕事を探す｜話す仕事">
+<meta property="og:url" content="https://unionfaith.jp/hanasu/jobs.html">
+<meta property="og:image" content="https://unionfaith.jp/og.jpg">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body id="jobs-page">
+<header class="wrap hd">
+  <a class="brand" href="./">話す仕事</a>
+  <nav class="nav" aria-label="メイン">
+    <a href="jobs.html" aria-current="page">仕事を探す</a>
+    <a href="support.html">独立の相談</a>
+    <a href="company.html">企業の方へ</a>
+  </nav>
+</header>
+
+<main class="wrap page">
+  <div class="page__head sec__head" style="margin-bottom:0;align-items:flex-end">
+    <h1>仕事を探す</h1>
+    <p class="count" aria-live="polite"><b id="count">0</b> 件</p>
+  </div>
+
+  <div class="filters">
+    <div>
+      <span class="field-name" id="major-name">主要エリア</span>
+      <div class="chips" id="majors" role="group" aria-labelledby="major-name"></div>
+    </div>
+    <div>
+      <span class="field-name" id="area-name">エリア</span>
+      <div class="chips" id="areas" role="group" aria-labelledby="area-name"></div>
+    </div>
+    <div class="prefs" id="prefs-box" hidden>
+      <span class="field-name" id="pref-name">県</span>
+      <div class="chips" id="prefs" role="group" aria-labelledby="pref-name"></div>
+    </div>
+    <div>
+      <span class="field-name" id="style-name">働き方</span>
+      <div class="chips" id="styles" role="group" aria-labelledby="style-name"></div>
+    </div>
+  </div>
+
+  <div class="jobs" id="job-list" style="margin-top:1.5rem"></div>
+  <div class="empty" id="empty" hidden>
+    <p>この条件の仕事は、まだありません。</p>
+    <button class="btn" id="reset" type="button">条件を戻す</button>
+    <p class="note" style="margin-top:1.25rem;font-family:inherit;font-size:.875rem">ほかの地域の相談は、<a href="../#contact">お問い合わせ</a>からどうぞ。</p>
+  </div>
+  <p class="note" style="margin-top:1.75rem">掲載している仕事の詳しい条件は、各求人のページでご確認ください。</p>
+</main>
+
+<footer class="ft">
+  <div class="wrap">
+    <span>運営：<a href="../">Union Faith株式会社</a></span>
+    <a href="../privacy.html">プライバシーポリシー</a>
+  </div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
