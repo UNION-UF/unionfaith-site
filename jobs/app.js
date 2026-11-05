@@ -14,7 +14,7 @@
     tag: '未経験歓迎',
     title: 'au・UQ mobileの携帯販売スタッフ',
     region: '中国', prefs: ['山口'],
-    area: '山口県山口市', site: '店舗固定', pay: '日額 13,000円〜', days: '月21日', hours: '10:00〜19:00',
+    area: '山口県山口市', site: '店舗固定', pay: '日額 13,000円〜（スキルに応じて決定）', days: '月21日', hours: '10:00〜19:00',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-yamaguchi.html'
   }, {
