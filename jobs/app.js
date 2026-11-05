@@ -11,31 +11,25 @@
     '九州・沖縄': ['福岡', '佐賀', '長崎', '熊本', '大分', '宮崎', '鹿児島', '沖縄']
   };
   var JOBS = [{
-    tag: '店舗固定',
-    title: '量販店の携帯販売スタッフ',
-    region: '中国', prefs: ['山口'], place: '山口県山口市',
-    shop: '家電量販店 / au・UQ mobile',
+    tag: '未経験歓迎',
+    title: 'au・UQ mobileの携帯販売スタッフ',
+    region: '中国', prefs: ['山口'],
+    area: '山口県山口市', site: '店舗固定', pay: '日額 13,000円〜', days: '月21日', hours: '10:00〜19:00',
     styles: ['業務委託', '契約社員', 'アルバイト'],
-    work: '業務委託（雇用の相談も可）',
-    pay: '日額13,000円〜',
     href: 'job-yamaguchi.html'
   }, {
     tag: '経験者のみ',
-    title: 'ソフトバンク経験者の携帯販売スタッフ',
-    region: '九州・沖縄', prefs: ['福岡', '佐賀', '熊本'], place: '福岡・佐賀・熊本',
-    shop: 'ソフトバンク',
+    title: 'ソフトバンクの携帯販売スタッフ',
+    region: '九州・沖縄', prefs: ['福岡', '佐賀', '熊本'],
+    area: '福岡県・佐賀県・熊本県', site: '面談でご案内', pay: '日額 18,500円〜25,000円', days: '月21日', hours: '10:00〜19:00',
     styles: ['業務委託', '契約社員', 'アルバイト'],
-    work: '業務委託（雇用の相談も可）',
-    pay: '日額18,500円〜25,000円 × 月21日',
     href: 'job-kyushu-softbank.html'
   }, {
-    tag: '移動型 / 経験者のみ',
-    title: 'ドコモの携帯販売 移動型スタッフ',
-    region: '中国', prefs: ['山口'], place: '山口県内',
-    shop: 'ドコモ / 交通費・宿泊費あり',
+    tag: '経験者のみ',
+    title: 'ドコモの携帯販売スタッフ',
+    region: '中国', prefs: ['山口'],
+    area: '山口県内', site: '移動型（交通費・宿泊費あり）', pay: '日額 20,000円〜23,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
-    work: '業務委託（雇用の相談も可）',
-    pay: '日額20,000円〜23,000円',
     href: 'job-yamaguchi-docomo.html'
   }];
   var STYLES = ['すべて', '業務委託', '契約社員', 'アルバイト'];
@@ -73,11 +67,16 @@
     var tag = document.createElement('span'); tag.className = 'job__tag'; tag.textContent = j.tag;
     var title = document.createElement('span'); title.className = 'job__title'; title.textContent = j.title;
     main.appendChild(tag); main.appendChild(title);
-    var meta = document.createElement('span'); meta.className = 'job__meta';
-    [j.place, j.shop, j.work].forEach(function (t) { var s = document.createElement('span'); s.textContent = t; meta.appendChild(s); });
-    var pay = document.createElement('span'); pay.className = 'job__pay'; pay.textContent = j.pay;
-    var arrow = document.createElement('span'); arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '→';
-    [main, meta, pay, arrow].forEach(function (n) { a.appendChild(n); });
+    var terms = document.createElement('dl'); terms.className = 'job__terms';
+    [['エリア', j.area], ['現場', j.site], ['報酬', j.pay], ['日数', j.days], ['時間', j.hours], ['働き方', '業務委託（雇用の相談も可）']].forEach(function (r) {
+      var row = document.createElement('div');
+      var dt = document.createElement('dt'); dt.textContent = r[0];
+      var dd = document.createElement('dd'); dd.textContent = r[1];
+      if (r[0] === '報酬') row.className = 'is-pay';
+      row.appendChild(dt); row.appendChild(dd); terms.appendChild(row);
+    });
+    var arrow = document.createElement('span'); arrow.className = 'job__arrow'; arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '詳しく見る →';
+    [main, terms, arrow].forEach(function (n) { a.appendChild(n); });
     return a;
   }
 
