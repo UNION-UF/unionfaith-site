@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="../assets/base.css?v=3">
+<link rel="stylesheet" href="../assets/base.css?v=4">
 <style>
 /* 管理者は「今日いま対応が要る人」から順に見る。PCは左メニュー、スマホは上タブ。 */
 .shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
@@ -25,7 +25,7 @@
 .nav .n { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--red); color: var(--on-red); font-size: 11px; line-height: 20px; text-align: center; }
 .side .foot { margin-top: auto; display: grid; gap: 8px; }
 .proto-btn { display: flex; align-items: center; gap: 8px; color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .28); border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 600; min-height: 42px; }
-.content { padding: 22px clamp(16px, 3vw, 32px) 48px; display: grid; gap: 16px; align-content: start; min-width: 0; padding-left: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-left, 0px)); padding-right: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-right, 0px)); }
+.content { padding: 22px clamp(16px, 3vw, 32px) 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0; padding-left: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-left, 0px)); padding-right: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-right, 0px)); }
 .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
 .head h1 { font-family: var(--display); font-weight: 900; font-size: clamp(22px, 2.6vw, 28px); }
 .head .meta { color: var(--muted); font-size: 13px; }
@@ -43,7 +43,7 @@
 .chip[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); font-weight: 700; }
 .chip i { font-style: normal; color: var(--red-ink); font-weight: 700; margin-left: 4px; }
 .chip[aria-pressed="true"] i { color: inherit; }
-.block { background: var(--surface); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; box-shadow: 0 1px 0 var(--line); min-width: 0; }
+.block { background: var(--surface); border-radius: 14px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; box-shadow: 0 1px 0 var(--line); min-width: 0; }
 .block h2 { font-size: 15px; font-weight: 700; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; min-width: 0; }
 .alert-item { display: flex; justify-content: space-between; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding-block: 8px; border-top: 1px solid var(--line); }
@@ -100,7 +100,7 @@ tr.hot td { background: var(--red-soft); }
 </div>
 <div id="overlay"></div>
 <div id="toast" role="status" hidden></div>
-<script src="../assets/core.js?v=3"></script>
+<script src="../assets/core.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -220,7 +220,7 @@ tr.hot td { background: var(--red-soft); }
 
   function sheet() {
     if (!V.sheet) return '';
-    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 3 ／ データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 4 ／ データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
   }
 
   function render() {

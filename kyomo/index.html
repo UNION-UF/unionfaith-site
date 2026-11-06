@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="assets/base.css?v=3">
+<link rel="stylesheet" href="assets/base.css?v=4">
 <style>
 /* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
 #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
@@ -28,10 +28,10 @@
 .clock { display: flex; align-items: baseline; gap: 6px; font-weight: 600; line-height: 1; margin-top: 8px; letter-spacing: .01em; }
 .clock b { font-size: clamp(60px, 19vw, 74px); font-weight: 600; }
 .clock span { font-size: 24px; color: var(--on-deep-muted); }
-.main { padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; }
+.main { padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .main.home { padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px)); }
 .main.page { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
-.card { background: var(--surface); border-radius: 14px; padding: 13px 14px; display: grid; gap: 6px; min-width: 0; box-shadow: 0 1px 0 var(--line); }
+.card { background: var(--surface); border-radius: 14px; padding: 13px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; box-shadow: 0 1px 0 var(--line); }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; }
 .today-site { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
 .alarm { background: var(--red); color: var(--on-red); border-radius: 14px; padding: 13px 14px; display: grid; gap: 3px; }
@@ -94,7 +94,7 @@
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=3"></script>
+<script src="assets/core.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -241,7 +241,7 @@
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
       '<button class="btn" data-reset="1">最初の状態に戻す</button>' +
-      '<p class="proto">試作版 3 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<p class="proto">試作版 4 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
   }
   function gpsSheet() {
