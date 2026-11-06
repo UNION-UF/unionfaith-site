@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#17305C">
+<link rel="apple-touch-icon" href="../assets/icon-180.png">
+<title>店舗の準備状況 テストB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="../assets/base.css?v=b1">
+<style>
+.side { background: var(--pine-deep); color: var(--on-deep); padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; position: sticky; top: 0; z-index: 8; }
+.side .brand { font-size: 17px; }
+.side .role { font-size: 12px; color: var(--on-deep-muted); }
+.navs { order: 3; flex: 1 0 100%; display: flex; overflow-x: auto; gap: 2px; scrollbar-width: none; min-width: 0; }
+.nav { padding: 8px 12px; color: var(--on-deep-muted); min-height: 42px; white-space: nowrap; font-size: 14px; border-bottom: 3px solid transparent; }
+.nav[aria-current="page"] { color: var(--on-deep); font-weight: 700; border-bottom-color: var(--on-deep); }
+.foot { margin-left: auto; }
+.proto-btn { color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .4); border-radius: 4px; padding: 3px 10px; font-size: 12px; min-height: 34px; }
+.content { max-width: 1040px; margin: 0 auto; padding: 22px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 2.6vw, 28px); }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.meta { color: var(--muted); font-size: 13px; }
+.scope { background: var(--pine-soft); color: var(--pine-ink); padding: 10px 14px; font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.stat { background: var(--surface); padding: 12px 14px; min-width: 0; }
+.stat small { display: block; color: var(--muted); font-size: 12px; }
+.stat b { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.stat em { font-style: normal; font-size: 13px; color: var(--muted); margin-left: 3px; }
+.stat.warn { background: var(--amber-soft); } .stat.warn small, .stat.warn b, .stat.warn em { color: var(--amber-ink); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 6px 13px; font-size: 13px; min-height: 38px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); font-weight: 700; }
+.sel-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sel-row select, .sel-row input { border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; background: var(--surface); min-height: 42px; font-size: 16px; max-width: 100%; }
+.sel-row input { flex: 1 1 170px; min-width: 0; }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.block h2 { font-size: 15px; font-weight: 700; }
+.list { background: var(--surface); border: 1px solid var(--line); }
+.store { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--line); min-width: 0; }
+.store:first-child { border-top: 0; }
+.store small { display: block; color: var(--muted); font-size: 12px; }
+.store b { overflow-wrap: anywhere; }
+.nt { padding-block: 8px; border-top: 1px solid var(--line); } .nt:first-of-type { border-top: 0; }
+.nt small { display: block; color: var(--muted); font-size: 12px; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; padding: 8px 12px; background: var(--sunken); white-space: nowrap; }
+td { padding: 9px 12px; border-top: 1px solid var(--line); white-space: nowrap; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.bl { margin: 0; padding-left: 1.2em; display: grid; gap: 5px; }
+.note { color: var(--muted); font-size: 13px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<aside class="side" id="side"></aside>
+<main class="content" id="content"></main>
+<div id="overlay"></div>
+<script src="client-data.js?v=b1"></script>
+<script>
+/* 発注側の画面。店舗ごとの状況と委託先ごとの集計だけを読む。スタッフの情報はこの画面に届かない */
+(function () {
+  'use strict';
+  const D = window.KyomoClientData, FEED = 'kyomo-testb-feed';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const d0 = new Date(), DAY = d0.getFullYear() + '-' + (d0.getMonth() + 1) + '-' + d0.getDate();
+  const dateLabel = (d0.getMonth() + 1) + '月' + d0.getDate() + '日';
+  const STATE = { ready: ['準備完了', 'ok'], wait: ['確認中', 'warn'], none: ['予定なし', 'idle'] };
+  const V = { page: 'stores', area: 'all', pref: 'all', state: 'all', itaku: 'all', q: '', limit: 30, sheet: false };
+  const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  function data() {
+    try {
+      const f = JSON.parse(localStorage.getItem(FEED));
+      if (f && f.day === DAY) return f;
+    } catch (e) { /* 使えないときは見本を表示する */ }
+    return { stores: D.stores.map((s) => { const x = hash(s.id + DAY) % 100; return Object.assign({}, s, { state: x < 78 ? 'ready' : x < 92 ? 'wait' : 'none' }); }), comp: D.comp, notes: [] };
+  }
+  const itakuName = (id) => (D.itaku.find((i) => i.id === id) || {}).name || '';
+
+  function side() {
+    const nav = [['stores', '店舗の状況'], ['comp', '委託先の完了状況'], ['about', 'この画面について']];
+    $('side').innerHTML = '<span class="brand">店舗の準備状況</span><span class="role">発注側の画面 ／ テストB</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-demo="1">試作</button></div>';
+  }
+  function storesPage(F) {
+    const scoped = F.stores.filter((s) => (V.area === 'all' || s.area === V.area) && (V.pref === 'all' || s.pref === V.pref) && (V.itaku === 'all' || s.itaku === V.itaku));
+    const n = (k) => scoped.filter((s) => s.state === k).length;
+    const q = V.q.trim().replace(/\s/g, '');
+    const list = scoped.filter((s) => (V.state === 'all' || s.state === V.state) && (!q || s.name.replace(/\s/g, '').includes(q))).sort((a, b) => ({ wait: 0, ready: 1, none: 2 }[a.state] - { wait: 0, ready: 1, none: 2 }[b.state]));
+    const show = list.slice(0, V.limit);
+    const areas = D.areas.filter((a) => F.stores.some((s) => s.area === a.id));
+    const prefs = D.prefs.filter((p) => F.stores.some((s) => s.pref === p && (V.area === 'all' || s.area === V.area)));
+    const nameOf = (id) => (F.stores.find((s) => s.id === id) || {}).name || '';
+    let h = '<div class="head"><h1>店舗の状況</h1><span class="meta num">' + dateLabel + '</span></div>';
+    h += '<p class="scope">各委託先が確認した店舗の結果だけを表示します。個人の氏名や時刻は、この画面にはありません。</p>';
+    h += '<div class="stats"><div class="stat"><small>準備完了</small><b class="num">' + n('ready') + '</b><em>店舗</em></div><div class="stat' + (n('wait') ? ' warn' : '') + '"><small>確認中</small><b class="num">' + n('wait') + '</b><em>店舗</em></div><div class="stat"><small>予定なし</small><b class="num">' + n('none') + '</b><em>店舗</em></div></div>';
+    if (F.notes.length) h += '<section class="block"><h2>委託先からの報告</h2>' + F.notes.map((x) => '<div class="nt"><b>' + esc(nameOf(x.storeId)) + '</b><small>' + esc(itakuName(x.itaku)) + '</small>' + esc(x.text) + '</div>').join('') + '</section>';
+    h += '<div class="chips" role="group" aria-label="地方"><button class="chip" data-area="all" aria-pressed="' + (V.area === 'all') + '">全地方</button>' + areas.map((a) => '<button class="chip" data-area="' + a.id + '" aria-pressed="' + (V.area === a.id) + '">' + esc(a.name) + '</button>').join('') + '</div>';
+    h += '<div class="sel-row"><select id="fPref" aria-label="県を選ぶ"><option value="all">すべての県</option>' + prefs.map((p) => '<option' + (V.pref === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('') + '</select><select id="fItaku" aria-label="委託先を選ぶ"><option value="all">すべての委託先</option>' + D.itaku.map((i) => '<option value="' + i.id + '"' + (V.itaku === i.id ? ' selected' : '') + '>' + esc(i.name) + '</option>').join('') + '</select><select id="fState" aria-label="状況で絞り込む">' + [['all', 'すべての状況'], ['wait', '確認中'], ['ready', '準備完了'], ['none', '予定なし']].map((o) => '<option value="' + o[0] + '"' + (V.state === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select><input id="fQ" type="search" placeholder="店舗名で探す" value="' + esc(V.q) + '" aria-label="店舗名で探す"></div>';
+    h += '<section class="list">' + (show.map((s) => '<div class="store"><div><b>' + esc(s.name) + '</b><small>' + esc(s.pref) + ' ／ ' + esc(itakuName(s.itaku)) + '</small></div><span class="pill ' + STATE[s.state][1] + '">' + STATE[s.state][0] + '</span></div>').join('') || '<div class="store muted">条件に合う店舗はありません。</div>') + '</section>';
+    h += '<div class="row"><span class="note num">' + list.length + '店舗中 ' + show.length + '店舗を表示</span>' + (list.length > V.limit ? '<button class="btn" data-more="1">さらに表示</button>' : '') + '</div>';
+    return h;
+  }
+  function compPage(F) {
+    const c = (x) => x.done + '/' + x.total;
+    return '<div class="head"><h1>委託先の完了状況</h1><span class="meta">今月分</span></div><p class="scope">委託先ごとの完了数だけを表示します。誰が未完了かは各委託先が確認し、連絡します。</p><div class="tablebox"><table><thead><tr><th>委託先</th><th>制服棚卸し</th><th>インカム棚卸し</th><th>提出物</th></tr></thead><tbody>' + F.comp.map((x) => '<tr><td><b>' + esc(x.name) + '</b></td><td class="num">' + c(x.uniform) + '</td><td class="num">' + c(x.incam) + '</td><td class="num">' + c(x.tasks) + '</td></tr>').join('') + '</tbody></table></div><p class="note">提出物の数は、配信件数と対象人数を掛けた件数に対する完了数です。</p>';
+  }
+  function aboutPage() {
+    return '<div class="head"><h1>この画面について</h1></div><div class="two"><section class="block"><h2>表示するもの</h2><ul class="bl"><li>店舗ごとの準備状況</li><li>委託先ごとの完了数</li><li>委託先の責任者からの店舗に関する報告</li></ul></section><section class="block"><h2>表示しないもの</h2><ul class="bl"><li>スタッフの氏名とスタッフコード</li><li>報告の時刻</li><li>位置情報</li><li>棚卸しの写真</li><li>相談窓口の利用と内容</li></ul></section></div><section class="block"><h2>できないこと</h2><p>スタッフ個人への連絡や指示は、この画面からはできません。店舗について確認が必要なときは、委託先の責任者へご連絡ください。</p></section><p class="note">運用の適否は法務部門のご確認を前提とした試作です。問題が生じないことを保証するものではありません。</p>';
+  }
+  function demo() {
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><a class="btn" href="../" style="text-decoration:none">スタッフの画面を開く</a><a class="btn" href="../itaku/" style="text-decoration:none">委託先の画面を開く</a><p class="proto small muted">テストB ／ データは架空のサンプルです。同じ端末で委託先が店舗を確定すると、確認の時刻を過ぎてからここに反映します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+  function render() {
+    const F = data();
+    side();
+    $('content').innerHTML = V.page === 'stores' ? storesPage(F) : V.page === 'comp' ? compPage(F) : aboutPage();
+    $('overlay').innerHTML = V.sheet ? demo() : '';
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, [data-close]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.page) { V.page = d.page; window.scrollTo(0, 0); render(); return; }
+    if (d.area) { V.area = d.area; V.pref = 'all'; V.limit = 30; render(); return; }
+    if (d.more) { V.limit += 30; render(); return; }
+    if (d.demo) { V.sheet = true; render(); return; }
+    if (d.close) { V.sheet = false; render(); return; }
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.id === 'fPref') { V.pref = t.value; V.limit = 30; render(); }
+    if (t.id === 'fItaku') { V.itaku = t.value; V.limit = 30; render(); }
+    if (t.id === 'fState') { V.state = t.value; V.limit = 30; render(); }
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target.id !== 'fQ') return;
+    V.q = e.target.value; V.limit = 30;
+    const pos = e.target.selectionStart; render();
+    const n = $('fQ'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (err) { /* 無視 */ } }
+  });
+  window.addEventListener('storage', (e) => { if (e.key === FEED && document.activeElement.id !== 'fQ') render(); });
+  setInterval(() => { if (document.activeElement.id !== 'fQ') render(); }, 30000);
+  render();
+})();
+</script>
+</body>
+</html>
