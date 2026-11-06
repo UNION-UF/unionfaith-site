@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#17305C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="キョウモ">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>キョウモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/base.css?v=7">
+<style>
+/* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
+#app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
+.top { background: var(--pine-deep); color: var(--on-deep); padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+.bar .brand { font-size: 18px; }
+.demo-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 3px; padding: 5px 12px; font-size: 12px; font-weight: 700; color: var(--on-deep); min-height: 34px; }
+.sub-title { font-family: var(--display); font-weight: 700; font-size: 21px; margin-top: 4px; }
+.when { color: var(--on-deep-muted); font-size: 13px; margin-top: 6px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.clock { display: flex; align-items: baseline; gap: 6px; font-weight: 700; line-height: 1; margin-top: 8px; letter-spacing: .01em; }
+.clock b { font-size: clamp(60px, 19vw, 74px); font-weight: 700; }
+.clock span { font-size: 24px; color: var(--on-deep-muted); }
+.main { padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.main.home { padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px)); }
+.main.page { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+.card { background: var(--surface); border-radius: 4px; padding: 13px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; border: 1px solid var(--line); }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; }
+.today-site { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+.alarm { background: var(--red); color: var(--on-red); border-radius: 4px; padding: 13px 14px; display: grid; gap: 3px; }
+.alarm b { font-size: 15px; }
+.alarm span { font-size: 13px; }
+.times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.time-cell { background: var(--surface); border-radius: 4px; padding: 11px 14px; border: 1px solid var(--line); min-width: 0; }
+.time-cell small { display: block; color: var(--muted); font-size: 12px; }
+.time-cell b { font-size: 26px; font-weight: 700; line-height: 1.25; }
+.loc-line { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.linkcard { width: 100%; text-align: left; background: var(--surface); border-radius: 4px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); min-height: 54px; }
+/* 打刻ドック */
+.dock { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, var(--bg) 78%, transparent); padding: 18px max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; z-index: 10; }
+.punch { border-radius: 4px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--display); font-weight: 700; font-size: 24px; transition: transform .08s; position: relative; }
+.punch small { font-family: var(--sans); font-weight: 400; font-size: 12px; opacity: .9; }
+.punch:active:not(:disabled) { transform: scale(.97); }
+.punch.in.on { background: var(--pine); color: var(--on-pine); box-shadow: none; }
+.punch.out.on { background: var(--night); color: var(--on-night); box-shadow: none; }
+.punch:disabled { background: var(--surface); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); cursor: default; font-size: 20px; }
+.spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid currentColor; border-right-color: transparent; animation: sp .8s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+/* タブ */
+.tabs { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 480px; background: var(--surface); box-shadow: 0 -1px 0 var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 4px max(4px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); z-index: 11; }
+.tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 52px; color: var(--muted); font-size: 11px; font-weight: 400; position: relative; border-radius: 4px; }
+.tabs button[aria-current="page"] { color: var(--pine-ink); font-weight: 700; }
+.tabs .dot { position: absolute; top: 3px; left: calc(50% + 6px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 4px; background: var(--red); color: var(--on-red); font-size: 10px; line-height: 16px; text-align: center; }
+/* 下位ページ */
+.page-title { font-family: var(--display); font-weight: 700; font-size: 21px; }
+.section-label { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 4px; }
+.task { width: 100%; text-align: left; }
+.task b { font-size: 15px; }
+.back { display: inline-flex; align-items: center; gap: 2px; color: var(--on-deep); font-weight: 700; min-height: 40px; }
+.step-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); }
+.step-row:last-child { border-bottom: 0; }
+.steps { display: flex; align-items: center; gap: 4px; }
+.steps button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunken); font-size: 20px; }
+.steps span { width: 34px; text-align: center; font-size: 18px; font-weight: 700; }
+.diff { color: var(--red-ink); font-size: 12px; font-weight: 700; display: block; }
+.summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.summary div { background: var(--surface); border-radius: 4px; padding: 10px; border: 1px solid var(--line); }
+.summary small { display: block; color: var(--muted); font-size: 11px; }
+.summary b { font-size: 22px; font-weight: 700; }
+.hist-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 8px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.hist-row:last-child { border-bottom: 0; }
+.safe { background: var(--pine-soft); color: var(--pine-ink); border-radius: 4px; padding: 14px; display: grid; gap: 4px; font-size: 14px; }
+.safe b { font-family: var(--display); font-weight: 700; font-size: 17px; }
+.contact { font-weight: 700; overflow-wrap: anywhere; }
+.bullets { margin: 0; padding-left: 1.2em; display: grid; gap: 5px; font-size: 14px; }
+/* 通知とスナックバー */
+.banner { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: calc(100% - 20px); max-width: 460px; background: var(--surface); border-radius: 4px; padding: 12px 14px; box-shadow: none; z-index: 30; display: grid; gap: 2px; animation: drop .25s ease-out; }
+.banner b { display: flex; align-items: center; gap: 6px; color: var(--red-ink); font-size: 14px; }
+.banner span { font-size: 13px; }
+@keyframes drop { from { transform: translate(-50%, -24px); opacity: 0; } }
+.snack { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(176px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 28px); max-width: 452px; background: var(--ink); color: var(--bg); border-radius: 4px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 20; font-size: 14px; }
+.snack.low { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+.snack button { flex: none; white-space: nowrap; font-weight: 700; text-decoration: underline; min-height: 34px; padding-inline: 6px; color: var(--bg); }
+.proto { font-size: 12px; color: var(--muted); }
+.site-note { font-size: 15px; font-weight: 400; }
+.slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.slot { display: grid; gap: 5px; min-width: 0; }
+.slot b { font-size: 14px; }
+.slot .shot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 4 / 3; border: 1.5px dashed var(--line); border-radius: 4px; background: var(--sunken); color: var(--pine-ink); font-weight: 700; font-size: 13px; overflow: hidden; cursor: pointer; text-align: center; }
+.slot .shot.has { border-style: solid; }
+.slot .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slot .again { position: absolute; right: 6px; bottom: 6px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 3px; }
+.slot small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.pick { width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; min-height: 50px; display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 700; }
+.pick small { font-weight: 400; color: var(--muted); }
+.seg.five button { font-size: 12px; padding-inline: 2px; }
+/* デザインA: 上は紺の帯、時刻は白地、情報は罫線の行で並べる */
+.top { padding-bottom: 10px; }
+.clock-sec { background: var(--surface); border-bottom: 1px solid var(--line); padding: 16px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); }
+.clock-sec .when { color: var(--muted); margin: 0; }
+.clock-sec .clock { margin-top: 2px; color: var(--ink); font-weight: 700; }
+.clock-sec .clock b { font-weight: 700; font-size: clamp(54px, 16vw, 64px); }
+.clock-sec .clock span { color: var(--muted); font-size: 20px; }
+.rows { background: var(--surface); border-bottom: 1px solid var(--line); }
+.rows .line { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 46px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--sunken); width: 100%; text-align: left; }
+.rows .line:last-child { border-bottom: 0; }
+.rows .line > span:first-child { color: var(--muted); flex: none; }
+.rows .line strong { text-align: right; overflow-wrap: anywhere; }
+.main.home { padding: 0 0 calc(176px + env(safe-area-inset-bottom, 0px)); gap: 0; }
+.home .alarm { border-radius: 0; }
+.home .loc-line { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+.dock { background: var(--bg); border-top: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); gap: 8px; }
+.punch { min-height: 88px; border-radius: 4px; }
+.units { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.units .shot { aspect-ratio: 16 / 10; }
+.units .shot small { font-weight: 400; color: var(--muted); }
+.units .shot > span:only-child { color: var(--muted); }
+.nohave { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); min-height: 36px; }
+.nohave input { width: 20px; height: 20px; accent-color: var(--pine); }
+.auth { min-height: 100dvh; display: flex; flex-direction: column; }
+.auth .top { flex: none; }
+.auth form { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 28px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.auth h1 { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.auth .links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.auth .link { color: var(--pine-ink); text-decoration: underline; min-height: 40px; font-size: 14px; }
+.auth .demo { background: var(--amber-soft); color: var(--amber-ink); padding: 10px 12px; font-size: 13px; }
+.pick.req { color: var(--pine-ink); border-style: dashed; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay"></div>
+<script src="assets/core.js?v=7"></script>
+<script>
+(function () {
+  'use strict';
+  const K = window.Kyomo;
+  const V = { tab: 'home', sub: null, sheet: null, busy: false, snack: null, banner: null, err: '', draft: {}, lastOver: false };
+  const $ = (id) => document.getElementById(id);
+  const esc = K.esc, fmt = K.fmt, ic = K.icon;
+  const me = () => K.me();
+  const firstName = () => me().name.split(' ')[0];
+  const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
+
+  const stockState = (kind) => {
+    const p = me(), mk = K.CUR_MONTH;
+    if (!K.isTarget(kind, mk, p.id)) return 'none';
+    const i = K.invOf(kind, mk, p.id);
+    return !i ? 'todo' : (i.status === 'back' ? 'back' : 'done');
+  };
+  const KIND_IDS = ['uniform', 'incam'];
+  const openTasks = () => {
+    const t = K.tasks().filter((x) => !K.isDone(x.id, me().id, 0)).map((x) => ({ id: x.id, title: x.title, due: x.due, kind: 'task' }));
+    KIND_IDS.forEach((kind) => {
+      const ss = stockState(kind);
+      if (ss === 'todo' || ss === 'back') t.push({ id: kind, title: (ss === 'back' ? '【差し戻し】' : '') + K.MONTH + '月の' + K.KINDS[kind].title, due: K.stockDue, kind: 'stock' });
+    });
+    return t.sort((a, b) => (a.due || '').localeCompare(b.due || '', 'ja', { numeric: true }));
+  };
+  const unread = () => K.notices().filter((n) => !K.isDone(n.id, me().id, 0));
+
+  function header(title) {
+    const p = me(), now = K.now(), sec = String(Math.floor((now % 1) * 60)).padStart(2, '0');
+    if (title) {
+      return '<header class="top"><div class="bar">' + (V.sub ? '<button class="back" data-back="1">' + ic('back', 20) + '戻る</button>' : '<span class="brand">キョウモ</span>') + demoBtn() + '</div><h1 class="sub-title">' + esc(title) + '</h1></header>';
+    }
+    return '<header class="top"><div class="bar"><span class="brand">キョウモ</span>' + demoBtn() + '</div></header>' +
+      '<section class="clock-sec"><div class="when"><span>' + dateLabel + (K.isTest() ? '　テスト時刻' : '') + '</span><span>' + esc(p.name) + '</span></div>' +
+      '<div class="clock num"><b id="clockHM">' + fmt(now) + '</b><span id="clockS">' + sec + '</span></div></section>';
+  }
+  const demoBtn = () => '<button class="demo-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button>';
+
+  function homeView() {
+    const p = me(), r = K.rec(p), st = K.status(p), dl = K.S.settings.deadline, home = K.homeStore(p), site = K.siteOf(p), help = K.isHelp(p);
+    let h = header() + '<main class="main home">';
+    if (st.key === 'over' && K.S.settings.target !== 'admin') {
+      h += '<div class="alarm" role="alert"><b>' + fmt(dl) + 'を過ぎましたが、出勤の記録がありません</b><span>' + (K.S.settings.target === 'both' ? '管理者にも通知されています。' : '') + '現場にいる場合は「出勤」を押してください。</span></div>';
+    }
+    if (KIND_IDS.some((kk) => K.S.reminded[kk] && stockState(kk) === 'todo')) h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
+    const siteText = r.in != null ? (site ? site.name : '判定なし') : (home ? home.name : '出勤時に自動で判定');
+    const todo = openTasks();
+    h += '<section class="rows">' +
+      '<div class="line"><span>今日の店舗</span><strong>' + esc(siteText) + (help ? ' <span class="pill warn">応援</span>' : '') + '</strong></div>' +
+      (help && home ? '<div class="line"><span>登録店舗</span><strong>' + esc(home.name) + '</strong></div>' : '') +
+      '<div class="line"><span>シフト</span><strong>' + esc(K.MARKS[p.today]) + '　確認 ' + fmt(dl) + '</strong></div>' +
+      '<div class="line"><span>状態</span><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></div>' +
+      '<div class="line"><span>出勤</span><strong class="num">' + (r.in != null ? fmt(r.in) : '--:--') + (r.loc ? ' <span class="pill ' + K.locInfo(r.loc).pill + '">' + esc(K.locInfo(r.loc).short) + '</span>' : '') + '</strong></div>' +
+      '<div class="line"><span>退勤</span><strong class="num">' + (r.out != null ? fmt(r.out) : '--:--') + (r.outLoc ? ' <span class="pill ' + K.locInfo(r.outLoc).pill + '">' + esc(K.locInfo(r.outLoc).short) + '</span>' : '') + '</strong></div>' +
+      (todo.length ? '<button class="line" data-tab="todo"><span>やること</span><strong><span class="num">' + todo.length + '</span>件　締切 ' + esc(todo[0].due || 'なし') + '</strong></button>' : '') +
+      '</section>';
+    h += '<div class="loc-line">' + ic('pin', 16) + '<span>' + (r.in != null && r.loc ? esc(K.locInfo(r.loc, r.dist, r.acc).detail) : '位置は打刻の瞬間だけ確認します') + '</span></div>';
+    h += '</main>';
+    const inOn = r.in == null, outOn = r.in != null && r.out == null, busy = V.busy;
+    h += '<div class="dock">' +
+      '<button class="punch in ' + (inOn ? 'on' : '') + '" id="punchIn"' + (inOn && !busy ? '' : ' disabled') + '>' + (busy === 'in' ? '<span class="spin"></span><small>位置を確認中</small>' : (r.in != null ? fmt(r.in) + '<small>出勤済み</small>' : '出勤')) + '</button>' +
+      '<button class="punch out ' + (outOn ? 'on' : '') + '" id="punchOut"' + (outOn && !busy ? '' : ' disabled') + '>' + (busy === 'out' ? '<span class="spin"></span><small>位置を確認中</small>' : (r.out != null ? fmt(r.out) + '<small>退勤済み</small>' : '退勤')) + '</button></div>';
+    return h;
+  }
+
+  function histView() {
+    const p = me(), rows = K.historyOf(p);
+    const worked = rows.filter((x) => x.in != null).length;
+    const planned = p.marks.filter((m) => m !== '休').length;
+    let h = header('打刻の履歴') + '<main class="main page"><div class="summary"><div><small>今月の稼働</small><b class="num">' + worked + '</b><small>日</small></div><div><small>今月の予定</small><b class="num">' + planned + '</b><small>日</small></div><div><small>修正の依頼</small><b class="num">' + K.S.fixes.filter((f) => f.pid === p.id && f.state === 'open').length + '</b><small>件</small></div></div>';
+    h += '<section class="card" style="padding-block:4px">' + rows.map((x) => {
+      const fix = K.S.fixes.find((f) => f.pid === p.id && f.date === K.dayLabel(x.d));
+      const work = x.mark !== '休' && x.mark !== '在';
+      const time = x.in != null ? '<span class="num">' + fmt(x.in) + ' – ' + (x.out != null ? fmt(x.out) : (x.today ? '勤務中' : '--:--')) + '</span>' : '<span class="muted">' + esc(work ? (x.today ? '未打刻' : '記録なし') : K.MARKS[x.mark]) + '</span>';
+      const act = fix ? '<span class="pill ' + (fix.state === 'open' ? 'warn' : 'ok') + '">' + (fix.state === 'open' ? '確認中' : '修正済み') + '</span>' : (work ? '<button class="btn" style="min-height:34px;padding:2px 10px;font-size:12px" data-fix="' + x.d + '">修正を依頼</button>' : '');
+      return '<div class="hist-row"><span class="num"><b>' + x.d + '</b>日(' + K.weekday(x.d) + ')</span>' + time + act + '</div>';
+    }).join('') + '</section></main>';
+    return h;
+  }
+
+  function todoView() {
+    if (V.sub && V.sub.indexOf('stock:') === 0) return stockView(V.sub.slice(6));
+    if (V.sub && V.sub.indexOf('task:') === 0) return taskView(V.sub.slice(5));
+    const p = me(), open = openTasks();
+    let h = header('やること') + '<main class="main page">';
+    if (!open.length) h += '<section class="card"><b>すべて提出しました</b><span class="small muted">新しい提出物が届くと、ここに表示します。</span></section>';
+    h += open.map((t) => '<button class="linkcard task" data-open="' + (t.kind === 'stock' ? 'stock:' + t.id : 'task:' + t.id) + '"><span><b>' + esc(t.title) + '</b><br><span class="small muted">締切 ' + esc(t.due || 'なし') + '</span></span>' + ic('chev', 18) + '</button>').join('');
+    const done = K.tasks().filter((t) => K.isDone(t.id, p.id, 0));
+    const invs = KIND_IDS.map((kind) => ({ kind, inv: K.invOf(kind, K.CUR_MONTH, p.id) })).filter((x) => x.inv && x.inv.status !== 'back');
+    if (done.length || invs.length) {
+      h += '<div class="section-label">提出済み</div>';
+      h += invs.map((x) => '<button class="linkcard task" data-open="stock:' + x.kind + '"><span>' + K.MONTH + '月の' + K.KINDS[x.kind].title + '</span><span class="pill ' + K.INV_STATUS[x.inv.status].pill + '">' + K.INV_STATUS[x.inv.status].label + '</span></button>').join('');
+      h += done.map((t) => '<section class="card"><div class="row"><span>' + esc(t.title) + '</span><span class="pill ok">提出済み</span></div></section>').join('');
+    }
+    return h + '</main>';
+  }
+  function taskView(id) {
+    const t = K.tasks().find((x) => x.id === id);
+    if (!t) { V.sub = null; return todoView(); }
+    return header(t.title) + '<main class="main page"><section class="card"><span class="pill warn" style="justify-self:start">締切 ' + esc(t.due || 'なし') + '</span><p>' + esc(t.body) + '</p></section>' +
+      '<div class="field"><label for="taskNote">内容</label><textarea id="taskNote" placeholder="' + esc(t.placeholder || '') + '">' + esc(V.draft.note || '') + '</textarea></div>' +
+      '<div class="field"><label for="taskFile">写真やファイル（任意）</label><input id="taskFile" type="file" accept="image/*,.pdf"></div>' +
+      (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
+      '<button class="btn primary block" data-submit="' + esc(t.id) + '" style="min-height:54px">提出する</button></main>';
+  }
+  function stockView(kind) {
+    const p = me(), mk = K.CUR_MONTH, def = K.KINDS[kind];
+    if (!K.isTarget(kind, mk, p.id)) return header(def.title) + '<main class="main page"><section class="card"><b>今月の' + def.title + 'はありません</b><span class="small muted">対象の月になると、やることに表示します。</span></section></main>';
+    const inv = K.invOf(kind, mk, p.id), locked = inv && inv.status !== 'back', dr = K.draftOf(kind, p.id);
+    const stat = inv ? K.INV_STATUS[inv.status] : { label: '締切 ' + K.stockDue, pill: 'warn' };
+    let h = header(def.title) + '<main class="main page">';
+    h += '<section class="card"><div class="row"><b>' + K.MONTH + '月の' + def.title + '</b><span class="pill ' + stat.pill + '">' + stat.label + '</span></div>';
+    if (inv && inv.status === 'back') h += '<span class="small" style="color:var(--red-ink)"><b>差し戻しの理由：</b>' + esc(inv.backNote) + '</span>';
+    else if (!locked) h += '<span class="small muted">' + def.hint + '。文字がぼやけたときは撮り直してください。</span>';
+    h += '</section><div class="section-label">写真</div><section class="units">' + def.units.map((u) => {
+      const miss = locked ? (inv.missing || []).includes(u.k) : !!dr.missing[u.k];
+      const id = locked ? (inv.photos || {})[u.k] : dr.photos[u.k];
+      const img = id ? '<img alt="' + u.n + 'の写真" data-photo="' + esc(id) + '" data-key="' + p.id + u.k + '" data-label="' + u.n + '">' : '';
+      if (locked) return '<div class="slot"><b>' + u.n + '</b>' + (miss ? '<div class="shot has"><span>手元にない</span></div>' : '<div class="shot has">' + img + '</div>') + '</div>';
+      const body = miss ? '<div class="shot has"><span>手元にない</span></div>' : '<label class="shot' + (id ? ' has' : '') + '" for="ph-' + u.k + '">' + (id ? img + '<span class="again">撮り直す</span>' : ic('camera', 26) + '<span>撮影する</span><small>' + def.mark + 'を写す</small>') + '</label><input class="vh" id="ph-' + u.k + '" type="file" accept="image/*" capture="environment" data-kind="' + kind + '" data-unit="' + u.k + '">';
+      return '<div class="slot"><div class="row"><b>' + u.n + '</b><label class="nohave"><input type="checkbox" data-nohave="' + u.k + '" data-kind="' + kind + '"' + (miss ? ' checked' : '') + '>手元にない</label></div>' + body + '</div>';
+    }).join('') + '</section>';
+    if (!locked) h += '<p class="small muted">お客様の情報や人の顔が写らないように撮影してください。</p>';
+    if (def.counts.length) {
+      h += '<div class="section-label">付属品の数</div><section class="card" style="padding-block:2px">' + def.counts.map((c) => {
+        const val = locked ? ((inv.counts || {})[c.k] !== undefined ? inv.counts[c.k] : c.lent) : dr.counts[c.k];
+        const diff = val - c.lent;
+        return '<div class="step-row"><div><b>' + c.n + '</b><br><span class="small muted">貸与 ' + c.lent + c.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + c.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + c.k + '" data-kind="' + kind + '" data-d="-1" aria-label="' + c.n + 'を減らす"' + (locked ? ' disabled' : '') + '>−</button><span class="num">' + val + '</span><button data-step="' + c.k + '" data-kind="' + kind + '" data-d="1" aria-label="' + c.n + 'を増やす"' + (locked ? ' disabled' : '') + '>＋</button></div></div>';
+      }).join('') + '</section>';
+    }
+    if (V.err) h += '<div class="err">' + esc(V.err) + '</div>';
+    if (!locked) h += '<button class="btn primary block" data-submitstock="' + kind + '" style="min-height:54px">' + (inv ? '再提出する' : 'この内容で提出する') + '</button>';
+    return h + '</main>';
+  }
+
+  function newsView() {
+    const id = me().id;
+    return header('お知らせ') + '<main class="main page">' + K.notices().map((n) => {
+      const d = K.isDone(n.id, id, 0);
+      return '<section class="card"><div class="row"><b>' + esc(n.title) + '</b>' + (d ? '<span class="pill idle">確認済み</span>' : '<span class="pill bad">未確認</span>') + '</div><span class="small muted">' + esc(n.date || '') + (n.important ? '　重要' : '') + '</span><p class="small">' + esc(n.body) + '</p>' + (d ? '' : '<div><button class="btn" data-read="' + esc(n.id) + '">確認しました</button></div>') + '</section>';
+    }).join('') + '</main>';
+  }
+
+  function helpView() {
+    const s = K.S.settings;
+    return header('相談窓口') + '<main class="main page"><div class="safe"><b>ひとりで抱えなくて大丈夫です</b><span>相談内容も、この画面を開いたことも、アプリには記録しません。管理者の画面にも表示されません。</span></div>' +
+      '<section class="card"><b>社内の相談窓口</b><span class="contact">' + esc(s.inner) + '</span></section>' +
+      '<section class="card"><b>社外の相談窓口</b><span class="contact">' + esc(s.outer) + '</span><span class="small muted">社内の人に話しにくいときは、こちらへ。</span></section>' +
+      '<section class="card"><ul class="bullets"><li>業務委託、アルバイト、契約社員など、働き方を問わず相談できます。</li><li>相手が上司、同僚、取引先、お客様でも相談できます。</li><li>相談したことを理由に不利益な扱いをすることは、禁止されています。</li></ul></section></main>';
+  }
+
+  function tabs() {
+    const list = [['home', '打刻', 'clock'], ['hist', '履歴', 'hist'], ['todo', 'やること', 'list'], ['news', 'お知らせ', 'bell'], ['help', '相談', 'help']];
+    const counts = { todo: openTasks().length, news: unread().length };
+    return '<nav class="tabs" aria-label="メニュー">' + list.map((t) => '<button data-tab="' + t[0] + '"' + (V.tab === t[0] ? ' aria-current="page"' : '') + '>' + ic(t[2], 24) + t[1] + (counts[t[0]] ? '<span class="dot num">' + counts[t[0]] + '</span>' : '') + '</button>').join('') + '</nav>';
+  }
+
+  function demoSheet() {
+    const now = K.nowMin(), g = K.S.gps;
+    const gpsOpts = [['real', '実際のGPS'], ['in', '登録店舗'], ['help', '応援先'], ['out', '店舗外'], ['none', '取得不可']];
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
+      '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(now) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><span class="small muted">アラートなどを試すときだけ、時刻を変えられます。</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
+      '<div class="field"><span class="lab">スタッフ</span><div class="seg">' + [['me1', '常勤'], ['me2', '移動型']].map((o) => '<button data-persona="' + o[0] + '" aria-pressed="' + (K.S.persona === o[0]) + '">' + o[1] + '（' + esc(K.byId[o[0]].name) + '）</button>').join('') + '</div></div>' +
+      '<div class="field"><span class="lab">打刻時の位置</span><div class="seg five">' + gpsOpts.map((o) => '<button data-gps="' + o[0] + '" aria-pressed="' + (g === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+      (g === 'real' ? '<span class="small muted">今いる場所を実際に判定します。登録店舗から離れているときは、下のボタンで今いる場所を店舗に登録すると、範囲内の動きを試せます。</span><button class="btn" id="setGeo">' + ic('pin', 18) + '今いる場所を店舗に登録</button>' : '') + '</div>' +
+      '<div class="field"><label for="homeSel">このスタッフの登録店舗</label><select id="homeSel"><option value="">なし（移動型）</option>' + K.stores().filter((s) => s.area === me().area || !s.sample).map((s) => { const h = K.homeStore(me()); return '<option value="' + esc(s.id) + '"' + (h && h.id === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>' +
+      (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
+      '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
+      '<button class="btn" id="logout">ログアウト</button><button class="btn" data-reset="1">最初の状態に戻す</button>' +
+      '<p class="proto">試作版 7 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+  function gpsSheet() {
+    return '<div class="sheet-back"></div><div class="sheet" role="dialog" aria-label="位置情報の確認"><h2>位置情報の使い方</h2><p>現場にいることの確認のため、<b>打刻の瞬間だけ</b>位置を取得します。勤務中や休みの日に追跡することはありません。</p><p class="small muted">このあとスマホの確認画面が出たら「許可」を選んでください。許可しなくても打刻はでき、管理者に確認の印が付きます。</p><button class="btn primary" id="gpsAgree" style="min-height:54px">わかりました</button></div>';
+  }
+  function fixSheet() {
+    const d = V.fixDay;
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="修正の依頼"><h2>' + d + '日の修正を依頼</h2><div class="field"><label for="fixKind">内容</label><select id="fixKind"><option>出勤の打刻忘れ</option><option>退勤の打刻忘れ</option><option>時刻の間違い</option></select></div><div class="field"><label for="fixDetail">正しい時刻やメモ</label><input id="fixDetail" placeholder="例: 19:05 に退勤しました"></div>' + (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') + '<button class="btn primary" id="sendFix" style="min-height:50px">依頼を送る</button></div>';
+  }
+
+  /* ログイン。試作のためパスコードは画面に出す。本番はサーバーからメールで送り、判定もサーバーで行う */
+  const CODES = { AUC00001: 'me1', AUC00002: 'me2' };
+  V.a = { mode: 'login', code: '', email: '', err: '', info: '' };
+  const normCode = (v) => String(v || '').normalize('NFKC').trim().toUpperCase();
+  async function sha(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, '0')).join('');
+  }
+  function loginView() {
+    const a = V.a, err = a.err ? '<div class="err" role="alert">' + esc(a.err) + '</div>' : '', info = a.info ? '<p class="small muted">' + esc(a.info) + '</p>' : '';
+    const codeField = '<div class="field"><label for="aCode">aucコード（スタッフコード）</label><input id="aCode" autocomplete="username" autocapitalize="characters" value="' + esc(a.code) + '" placeholder="例: AUC00001"></div>';
+    const back = '<div class="links"><button class="link" type="button" data-amode="login">ログインに戻る</button></div>';
+    let body = '';
+    if (a.mode === 'login') {
+      body = '<h1>ログイン</h1>' + codeField + '<div class="field"><label for="aPass">パスワード</label><input id="aPass" type="password" autocomplete="current-password"></div>' + err + info + '<button class="btn primary" id="aLogin" type="submit" style="min-height:52px">ログイン</button><div class="links"><button class="link" type="button" data-amode="first">初めての方</button><button class="link" type="button" data-amode="forgot">パスワードを忘れた方</button></div><p class="demo">試作用のコードは AUC00001（常勤）と AUC00002（移動型）です。本物のパスワードは入れないでください。</p>';
+    } else if (a.mode === 'first' || a.mode === 'forgot') {
+      body = '<h1>' + (a.mode === 'first' ? '初回の登録' : 'パスワードの再設定') + '</h1><p class="small muted">' + (a.mode === 'first' ? '連絡先のメールアドレスに、確認用のパスコードを送ります。' : '登録したメールアドレスに、確認用のパスコードを送ります。') + '</p>' + codeField + '<div class="field"><label for="aEmail">メールアドレス</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" value="' + esc(a.email) + '"></div>' + err + '<button class="btn primary" id="aSend" type="submit" style="min-height:52px">パスコードを送る</button>' + back;
+    } else if (a.mode === 'code') {
+      body = '<h1>パスコードの入力</h1><p class="small muted">' + esc(a.email) + ' に送ったパスコードを入れてください。有効時間は10分です。</p><p class="demo">試作のためメールは送りません。パスコード：<b class="num">' + esc(a.sent) + '</b></p><div class="field"><label for="aPc">パスコード（6桁）</label><input id="aPc" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>' + err + '<button class="btn primary" id="aCheck" type="submit" style="min-height:52px">確認する</button>' + back;
+    } else {
+      body = '<h1>パスワードの設定</h1><div class="field"><label for="aNew">新しいパスワード（8文字以上）</label><input id="aNew" type="password" autocomplete="new-password"></div><div class="field"><label for="aNew2">もう一度入力</label><input id="aNew2" type="password" autocomplete="new-password"></div>' + err + '<button class="btn primary" id="aSave" type="submit" style="min-height:52px">設定してログイン</button>';
+    }
+    return '<div class="auth"><header class="top"><div class="bar"><span class="brand">キョウモ</span></div></header><form id="authForm" novalidate>' + body + '</form></div>';
+  }
+  async function authSubmit() {
+    const a = V.a, A = K.S.auth;
+    a.err = ''; a.info = '';
+    if (a.mode === 'login') {
+      const code = normCode($('aCode').value), pass = $('aPass').value;
+      a.code = code;
+      if ((A.fails[code] || 0) >= 5) { a.err = '5回間違えたためロックしました。パスワードを再設定してください。'; render(); return; }
+      const acc = A.accounts[code];
+      if (acc && acc.hash === await sha(code + ':' + pass)) {
+        delete A.fails[code]; K.S.session = CODES[code]; K.S.persona = CODES[code]; K.save(); V.a = { mode: 'login', code: '', email: '', err: '', info: '' }; V.tab = 'home'; render(); return;
+      }
+      if (CODES[code]) { A.fails[code] = (A.fails[code] || 0) + 1; K.save(); }
+      a.err = 'コードかパスワードが違います。'; render(); return;
+    }
+    if (a.mode === 'first' || a.mode === 'forgot') {
+      const code = normCode($('aCode').value), email = $('aEmail').value.trim();
+      a.code = code; a.email = email;
+      if (!code) { a.err = 'aucコードを入れてください。'; render(); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { a.err = 'メールアドレスの形が正しくありません。'; render(); return; }
+      if (a.mode === 'first' && A.accounts[code]) { a.err = 'このコードは登録済みです。「パスワードを忘れた方」から再設定してください。'; a.mode = 'login'; render(); return; }
+      const ok = a.mode === 'first' ? !!CODES[code] : (A.accounts[code] && A.accounts[code].email.toLowerCase() === email.toLowerCase());
+      if (!ok) { a.mode = 'login'; a.info = '登録内容と一致する場合は、パスコードを送りました。届かないときは管理者に連絡してください。'; render(); return; }
+      a.purpose = a.mode; a.sent = String(Math.floor(100000 + Math.random() * 900000)); a.exp = Date.now() + 600000; a.tries = 0; a.mode = 'code'; render(); return;
+    }
+    if (a.mode === 'code') {
+      const v = $('aPc').value.trim();
+      if (Date.now() > a.exp) { a.err = '有効時間を過ぎました。もう一度送ってください。'; a.mode = a.purpose; render(); return; }
+      if (v !== a.sent) {
+        a.tries++;
+        if (a.tries >= 5) { a.err = '5回間違えました。もう一度送ってください。'; a.mode = a.purpose; render(); return; }
+        a.err = 'パスコードが違います。'; render(); return;
+      }
+      a.mode = 'new'; render(); return;
+    }
+    const p1 = $('aNew').value, p2 = $('aNew2').value;
+    if (p1.length < 8) { a.err = 'パスワードは8文字以上にしてください。'; render(); return; }
+    if (p1 !== p2) { a.err = '2つのパスワードが違います。'; render(); return; }
+    A.accounts[a.code] = { hash: await sha(a.code + ':' + p1), email: a.email };
+    delete A.fails[a.code];
+    K.S.session = CODES[a.code]; K.S.persona = CODES[a.code]; K.save();
+    V.a = { mode: 'login', code: '', email: '', err: '', info: '' }; V.tab = 'home'; render(); snack('パスワードを設定しました');
+  }
+
+  function render() {
+    if (!K.S.session) { $('app').innerHTML = loginView(); $('overlay').innerHTML = ''; return; }
+    const views = { home: homeView, hist: histView, todo: todoView, news: newsView, help: helpView };
+    $('app').innerHTML = views[V.tab]() + tabs();
+    K.hydratePhotos($('app'));
+    renderOverlay();
+  }
+  function renderOverlay() {
+    let h = '';
+    if (V.banner) h += '<div class="banner" role="alert"><b>' + ic('alert', 16) + esc(V.banner.title) + '</b><span>' + esc(V.banner.body) + '</span></div>';
+    if (V.snack) h += '<div class="snack' + (V.tab === 'home' ? '' : ' low') + '" role="status"><span>' + esc(V.snack.text) + '</span>' + (V.snack.undo ? '<button id="undoBtn">取り消す</button>' : '') + '</div>';
+    if (V.sheet === 'demo') h += demoSheet();
+    if (V.sheet === 'gps') h += gpsSheet();
+    if (V.sheet === 'fix') h += fixSheet();
+    if (V.sheet === 'pick' && V.pick) h += pickSheet();
+    $('overlay').innerHTML = h;
+  }
+  let snackT, bannerT;
+  function snack(text, undo) {
+    V.snack = { text, undo };
+    clearTimeout(snackT);
+    snackT = setTimeout(() => { V.snack = null; renderOverlay(); }, undo ? 5000 : 2800);
+    renderOverlay();
+  }
+
+  function locate() {
+    return new Promise((resolve) => {
+      const mode = K.S.gps;
+      if (mode !== 'real') {
+        const p = me(), area = K.stores().filter((s) => s.area === p.area);
+        const first = K.homeStore(p) || area[0], other = area.find((s) => s.id !== first.id);
+        setTimeout(() => {
+          if (mode === 'in') resolve({ cands: [{ store: first, dist: 32 }] });
+          else if (mode === 'help') resolve({ cands: [{ store: other, dist: 41 }] });
+          else if (mode === 'out') resolve({ cands: [], loc: 'out', dist: 1800, near: area.slice(0, 5).map((store) => ({ store })), lat: first.lat + 0.016, lng: first.lng + 0.004 });
+          else resolve({ cands: [], loc: 'none', near: area.slice(0, 5).map((store) => ({ store })) });
+        }, 500);
+        return;
+      }
+      const fail = () => { const area = K.stores().filter((s) => s.area === me().area); resolve({ cands: [], loc: 'none', near: area.slice(0, 5).map((store) => ({ store })) }); };
+      if (!navigator.geolocation) { fail(); return; }
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const c = pos.coords, r = K.S.settings.radius, cands = K.matchStores(c.latitude, c.longitude, r);
+        if (cands.length) { resolve({ cands, acc: c.accuracy }); return; }
+        const near = K.nearestStores(c.latitude, c.longitude, 5);
+        resolve({ cands: [], loc: c.accuracy > Math.max(500, r * 2) ? 'low' : 'out', dist: near.length ? near[0].dist : null, acc: c.accuracy, near, lat: c.latitude, lng: c.longitude });
+      }, fail, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+    });
+  }
+  async function punch(kind) {
+    const p = me();
+    if (K.S.gps === 'real' && !K.S.gpsOk) { V.pending = kind; V.sheet = 'gps'; renderOverlay(); return; }
+    V.busy = kind; render();
+    const at = K.nowMin(), g = await locate();
+    V.busy = false;
+    const rec = K.rec(p), home = K.homeStore(p);
+    if (kind === 'out' && g.cands.length) {
+      const same = g.cands.find((x) => x.store.id === rec.storeId);
+      if (same) { finish(kind, at, same.store.id, 'in', same.dist, g.acc); return; }
+    }
+    if (g.cands.length === 1) { finish(kind, at, g.cands[0].store.id, 'in', g.cands[0].dist, g.acc); return; }
+    if (g.cands.length > 1) { V.pick = { kind, at, g, opts: g.cands, flagged: false }; V.sheet = 'pick'; render(); return; }
+    if (kind === 'out') { finish(kind, at, rec.storeId || (home && home.id) || null, g.loc, g.dist, g.acc); return; }
+    if (home && (g.loc === 'none')) { finish(kind, at, home.id, g.loc, g.dist, g.acc); return; }
+    V.pick = { kind, at, g, opts: g.near || [], flagged: true, home }; V.sheet = 'pick'; render();
+  }
+  function finish(kind, at, storeId, loc, dist, acc) {
+    const p = me();
+    if (kind === 'in') K.S.punches[p.id] = { in: at, loc, dist, acc, storeId, out: null };
+    else Object.assign(K.S.punches[p.id] = K.S.punches[p.id] || { in: at, storeId }, { out: at, outLoc: loc, outDist: dist });
+    K.save();
+    try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) { /* 無視 */ }
+    V.sheet = null; V.pick = null;
+    render();
+    V.undo = kind;
+    const st = storeId ? K.store(storeId) : null, h = K.homeStore(p);
+    const prefix = st ? st.name + (kind === 'in' && h && h.id !== st.id ? '（応援）' : '') + 'で' : '';
+    snack(prefix + (kind === 'in' ? '出勤' : '退勤') + 'を ' + fmt(at) + ' に記録しました', true);
+  }
+  function pickSheet() {
+    const x = V.pick, label = x.kind === 'in' ? '出勤' : '退勤';
+    if (x.request) {
+      return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗の申請"><h2>応援先の店舗を申請</h2><p class="small muted">この場所を登録店舗に追加するよう、管理者に申請します。今の位置を一緒に送ります。</p><div class="field"><label for="reqName">店舗名</label><input id="reqName" placeholder="例: エディオン山口本店"></div>' + (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') + '<button class="btn primary" id="sendReq" style="min-height:50px">' + label + 'を記録して申請する</button><button class="btn" data-pickcancel="1">やめる</button></div>';
+    }
+    const homeBtn = x.flagged && x.home ? '<button class="pick" data-pickstore="' + esc(x.home.id) + '"><span>登録店舗：' + esc(x.home.name) + '</span></button>' : '';
+    const others = x.opts.filter((o) => (!x.home || o.store.id !== x.home.id) && (o.dist == null || o.dist <= 30000));
+    const canReq = x.flagged && x.kind === 'in' && x.g.lat != null;
+    return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗を選ぶ"><h2>' + (x.flagged ? '近くに登録店舗が見つかりません' : '近くに複数の店舗があります') + '</h2><p class="small muted">' + (x.flagged ? '今いる店舗を選んでください。管理者に確認の印が付きます。' : label + 'する店舗を選んでください。') + '</p>' + homeBtn +
+      others.map((o) => '<button class="pick" data-pickstore="' + esc(o.store.id) + '"><span>' + esc(o.store.name) + '</span>' + (o.dist != null ? '<small class="num">' + (o.dist >= 1000 ? (o.dist / 1000).toFixed(1) + 'km' : Math.round(o.dist) + 'm') + '</small>' : '') + '</button>').join('') +
+      (canReq ? '<button class="pick req" id="openReq"><span>一覧にない店舗を申請する</span></button>' : '') +
+      '<button class="btn" data-pickcancel="1">やめる</button></div>';
+  }
+
+  document.addEventListener('submit', (e) => {
+    if (e.target.id === 'authForm') { e.preventDefault(); authSubmit(); }
+  });
+  document.addEventListener('click', (e) => {
+    const am = e.target.closest('[data-amode]');
+    if (am) { V.a.mode = am.dataset.amode; V.a.err = ''; V.a.info = ''; render(); return; }
+    if (e.target.closest('#logout')) { K.S.session = null; K.save(); V.sheet = null; V.tab = 'home'; V.sub = null; render(); return; }
+    const b = e.target.closest('button, [data-close], [data-pickcancel]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.tab) { V.tab = d.tab; V.sub = null; V.err = ''; window.scrollTo(0, 0); render(); return; }
+    if (d.back) { V.sub = null; V.err = ''; V.draft = {}; render(); return; }
+    if (d.sheet) { V.sheet = d.sheet; V.err = ''; renderOverlay(); return; }
+    if (d.close) { V.sheet = null; V.err = ''; renderOverlay(); return; }
+    if (d.pickcancel) { V.sheet = null; V.pick = null; V.err = ''; renderOverlay(); return; }
+    if (b.id === 'openReq') { V.pick.request = true; V.err = ''; renderOverlay(); return; }
+    if (b.id === 'sendReq') {
+      const name = $('reqName').value.trim(), x = V.pick;
+      if (!name) { V.err = '店舗名を入れてください。'; renderOverlay(); return; }
+      const h = K.homeStore(me());
+      K.S.storeRequests.unshift({ id: 'rq' + Date.now(), pid: me().id, name, lat: x.g.lat, lng: x.g.lng, date: K.md(0), state: 'open' });
+      K.save(); V.err = '';
+      finish(x.kind, x.at, h ? h.id : null, x.g.loc, x.g.dist, x.g.acc);
+      return;
+    }
+    if (d.pickstore) { const x = V.pick, o = x.opts.find((y) => y.store.id === d.pickstore); finish(x.kind, x.at, d.pickstore, x.flagged ? x.g.loc : 'in', o ? o.dist : x.g.dist, x.g.acc); return; }
+    if (d.jump) {
+      if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump);
+      V.lastOver = K.status(me()).key === 'over'; V.sheet = null; checkOverdue(true); render(); return;
+    }
+    if (d.persona) { K.S.persona = d.persona; K.S.session = d.persona; K.save(); V.sheet = 'demo'; render(); return; }
+    if (d.gps) { K.S.gps = d.gps; K.save(); renderOverlay(); return; }
+    if (d.reset) { K.reset(); V.sheet = null; V.tab = 'home'; V.sub = null; V.snack = null; V.banner = null; render(); snack('最初の状態に戻しました'); return; }
+    if (b.id === 'punchIn') { punch('in'); return; }
+    if (b.id === 'punchOut') { punch('out'); return; }
+    if (b.id === 'gpsAgree') { K.S.gpsOk = true; K.save(); V.sheet = null; renderOverlay(); punch(V.pending); return; }
+    if (b.id === 'undoBtn') {
+      const p = K.S.punches[me().id];
+      if (p) { if (V.undo === 'out') { p.out = null; p.outLoc = null; } else delete K.S.punches[me().id]; K.save(); }
+      V.snack = null; render(); return;
+    }
+    if (b.id === 'setGeo') {
+      V.err = '';
+      if (!navigator.geolocation) { V.err = 'この端末では位置情報を使えません。'; renderOverlay(); return; }
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const c = pos.coords, h = K.homeStore(me());
+        if (h) K.updateStore(h.id, { lat: c.latitude, lng: c.longitude });
+        else { const a = me().area, st = K.stores().find((s) => s.area === a); K.S.homeOver[me().id] = K.addStore({ name: '現在地の店舗', pref: me().pref, area: a, lat: c.latitude, lng: c.longitude }); K.save(); void st; }
+        V.sheet = null; render(); snack('今いる場所を店舗に登録しました');
+      }, () => { V.err = '位置を取得できませんでした。スマホの設定で、ブラウザの位置情報を許可してください。'; renderOverlay(); }, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+      return;
+    }
+    if (d.fix) { V.fixDay = +d.fix; V.sheet = 'fix'; V.err = ''; renderOverlay(); return; }
+    if (b.id === 'sendFix') {
+      const detail = $('fixDetail').value.trim();
+      if (!detail) { V.err = '正しい時刻かメモを入れてください。'; renderOverlay(); return; }
+      K.S.fixes.unshift({ id: 'fx' + Date.now(), pid: me().id, date: K.dayLabel(V.fixDay), kind: $('fixKind').value, detail, state: 'open' });
+      K.save(); V.sheet = null; V.err = ''; render(); snack('修正の依頼を送りました'); return;
+    }
+    if (d.open) { V.sub = d.open; V.err = ''; V.draft = {}; window.scrollTo(0, 0); render(); return; }
+    if (d.submit) {
+      const note = $('taskNote').value.trim(), file = $('taskFile').files[0];
+      if (!note && !file) { V.err = '内容を入れるか、ファイルを選んでください。'; V.draft.note = note; render(); return; }
+      K.setDone(d.submit, me().id); K.S.notes[d.submit + ':' + me().id] = note; K.save();
+      V.sub = null; V.err = ''; render(); snack('提出しました'); return;
+    }
+    if (d.step) {
+      const c = K.draftOf(d.kind, me().id).counts;
+      c[d.step] = Math.max(0, Math.min(9, c[d.step] + (+d.d))); K.save(); render(); return;
+    }
+    if (d.submitstock) {
+      const kind = d.submitstock, def = K.KINDS[kind], p = me(), dr = K.draftOf(kind, p.id);
+      const lack = def.units.filter((u) => !dr.photos[u.k] && !dr.missing[u.k]);
+      if (lack.length) { V.err = lack.map((u) => u.n).join('、') + ' の写真を撮影するか、「手元にない」を選んでください。'; render(); return; }
+      K.setInv(kind, K.CUR_MONTH, p.id, { date: K.md(0), status: 'wait', backNote: '', photos: Object.assign({}, dr.photos), missing: Object.keys(dr.missing).filter((k) => dr.missing[k]), counts: Object.assign({}, dr.counts) });
+      delete K.S.invDraft[kind + ':' + p.id]; K.save();
+      V.sub = null; V.err = ''; render(); snack(def.title + 'を提出しました'); return;
+    }
+    if (d.read) { K.setDone(d.read, me().id); render(); return; }
+  });
+  document.addEventListener('change', async (e) => {
+    const t = e.target;
+    if (t.id === 'homeSel') {
+      K.S.homeOver[me().id] = t.value || null; K.save(); render(); return;
+    }
+    if (t.dataset && t.dataset.nohave) {
+      const dr = K.draftOf(t.dataset.kind, me().id);
+      dr.missing[t.dataset.nohave] = t.checked;
+      if (t.checked) delete dr.photos[t.dataset.nohave];
+      K.save(); V.err = ''; render(); return;
+    }
+    if (t.dataset && t.dataset.unit) {
+      const f = t.files && t.files[0];
+      if (!f) return;
+      V.err = '';
+      try {
+        /* バーコードや番号が読めるよう、解像度を高めに残す */
+        const url = await K.shrinkImage(f, 1600, 0.82);
+        const id = 'ph-' + me().id + '-' + t.dataset.unit + '-' + Date.now();
+        await K.photoPut(id, url);
+        K.draftOf(t.dataset.kind, me().id).photos[t.dataset.unit] = id; K.save();
+      } catch (err) { V.err = '写真を読み込めませんでした。もう一度撮影してください。'; }
+      render();
+    }
+  });
+  document.addEventListener('input', (e) => { if (e.target.id === 'taskNote') V.draft.note = e.target.value; });
+
+  function checkOverdue(silentIfNot) {
+    const over = K.status(me()).key === 'over' && K.S.settings.target !== 'admin';
+    if (over && (!V.notified || silentIfNot)) {
+      V.notified = true;
+      V.banner = { title: '出勤の記録がありません', body: fmt(K.S.settings.deadline) + 'を過ぎました。現場にいる場合は打刻してください。' };
+      clearTimeout(bannerT);
+      bannerT = setTimeout(() => { V.banner = null; renderOverlay(); }, 6000);
+      try { if (navigator.vibrate) navigator.vibrate([60, 60, 60]); } catch (e) { /* 無視 */ }
+    }
+    if (!over) { V.notified = false; }
+  }
+  const activeIsForm = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName); };
+  let lastMin = K.nowMin();
+  setInterval(() => {
+    const now = K.now(), m = Math.floor(now);
+    const hm = $('clockHM'), s = $('clockS');
+    if (hm) { hm.textContent = fmt(now); s.textContent = String(Math.floor((now % 1) * 60)).padStart(2, '0'); }
+    if (m !== lastMin) {
+      lastMin = m;
+      checkOverdue();
+      if (!K.S.session) return;
+      if (!activeIsForm() && !V.sheet && !V.busy) render(); else renderOverlay();
+    }
+  }, 1000);
+  K.onChange(() => { if (K.S.session && !activeIsForm()) render(); });
+  V.lastOver = false;
+  render();
+})();
+</script>
+</body>
+</html>
