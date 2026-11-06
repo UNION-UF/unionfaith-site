@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0B4A3B">
+<meta name="theme-color" content="#17305C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="キョウモ管理">
@@ -12,61 +12,63 @@
 <title>キョウモ 管理者</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="../assets/base.css?v=5">
+<link rel="stylesheet" href="../assets/base.css?v=6">
 <style>
 /* 管理者は「今日いま対応が要る人」から順に見る。PCは左メニュー、スマホは上タブ。 */
-.shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
-.side { background: var(--pine-deep); color: var(--on-deep); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100dvh; }
-.side .brand { font-size: 20px; padding: 0 10px; }
-.side .role { font-size: 12px; color: var(--on-deep-muted); padding: 0 10px 14px; }
-.nav { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; color: var(--on-deep-muted); font-weight: 500; width: 100%; text-align: left; min-height: 44px; white-space: nowrap; }
-.nav[aria-current="page"] { background: rgba(255, 255, 255, .12); color: var(--on-deep); font-weight: 700; }
-.nav .n { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--red); color: var(--on-red); font-size: 11px; line-height: 20px; text-align: center; }
-.side .foot { margin-top: auto; display: grid; gap: 8px; }
-.proto-btn { display: flex; align-items: center; gap: 8px; color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .28); border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 600; min-height: 42px; }
+.shell { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; align-content: start; }
+.side { background: var(--pine-deep); color: var(--on-deep); position: sticky; top: 0; z-index: 8; padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
+.side .brand { font-size: 17px; }
+.side .role { font-size: 12px; color: var(--on-deep-muted); }
+.side .navs { order: 3; flex: 1 0 100%; display: flex; overflow-x: auto; gap: 2px; scrollbar-width: none; min-width: 0; }
+.nav { display: flex; align-items: center; gap: 6px; padding: 8px 12px; color: var(--on-deep-muted); min-height: 42px; white-space: nowrap; font-size: 14px; border-bottom: 3px solid transparent; }
+.nav .ic { display: none; }
+.nav[aria-current="page"] { color: var(--on-deep); font-weight: 700; border-bottom-color: var(--on-deep); }
+.nav .n { min-width: 18px; padding: 0 5px; border-radius: 3px; background: var(--red); color: var(--on-red); font-size: 11px; line-height: 18px; text-align: center; }
+.side .foot { margin-left: auto; }
+.proto-btn { display: flex; align-items: center; gap: 6px; color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .4); border-radius: 4px; padding: 3px 10px; font-size: 12px; min-height: 34px; }
 .content { padding: 22px clamp(16px, 3vw, 32px) 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; padding-left: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-left, 0px)); padding-right: max(16px, clamp(16px, 3vw, 32px), env(safe-area-inset-right, 0px)); }
 .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
-.head h1 { font-family: var(--display); font-weight: 900; font-size: clamp(22px, 2.6vw, 28px); }
+.head h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 2.6vw, 28px); }
 .head .meta { color: var(--muted); font-size: 13px; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
-.stat { background: var(--surface); border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 0 var(--line); text-align: left; min-width: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.stat { background: var(--surface); padding: 12px 14px; text-align: left; min-width: 0; }
 .stat small { display: block; color: var(--muted); font-size: 12px; }
-.stat b { font-size: 28px; font-weight: 600; line-height: 1.2; }
+.stat b { font-size: 28px; font-weight: 700; line-height: 1.2; }
 .stat em { font-style: normal; font-size: 13px; color: var(--muted); margin-left: 3px; }
-.stat.bad { background: var(--red); }
-.stat.bad small, .stat.bad b, .stat.bad em { color: var(--on-red); }
-.stat.warn { background: var(--amber-soft); box-shadow: none; }
+.stat.bad { background: var(--red-soft); }
+.stat.bad small, .stat.bad b, .stat.bad em { color: var(--red-ink); }
+.stat.warn { background: var(--amber-soft); }
 .stat.warn small, .stat.warn b, .stat.warn em { color: var(--amber-ink); }
 .filters { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 500; min-height: 38px; color: var(--muted); }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 6px 13px; font-size: 13px; font-weight: 400; min-height: 38px; color: var(--muted); }
 .chip[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); font-weight: 700; }
 .chip i { font-style: normal; color: var(--red-ink); font-weight: 700; margin-left: 4px; }
 .chip[aria-pressed="true"] i { color: inherit; }
 .sel-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.sel-row select, .sel-row input { border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; background: var(--surface); min-height: 42px; font-size: 16px; max-width: 100%; }
+.sel-row select, .sel-row input { border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; background: var(--surface); min-height: 42px; font-size: 16px; max-width: 100%; }
 .sel-row input { flex: 1 1 170px; min-width: 0; }
-.block { background: var(--surface); border-radius: 14px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; box-shadow: 0 1px 0 var(--line); min-width: 0; }
+.block { background: var(--surface); border-radius: 4px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; border: 1px solid var(--line); min-width: 0; }
 .block h2 { font-size: 15px; font-weight: 700; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; min-width: 0; }
 .alert-item { display: flex; justify-content: space-between; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding-block: 8px; border-top: 1px solid var(--line); }
 .alert-item:first-of-type { border-top: 0; }
 .alert-item .sub { color: var(--muted); font-size: 13px; }
-.tablebox { overflow-x: auto; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
-th { font-size: 12px; font-weight: 600; color: var(--muted); text-align: left; padding: 8px 12px; background: var(--sunken); white-space: nowrap; }
+th { font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; padding: 8px 12px; background: var(--sunken); white-space: nowrap; }
 td { padding: 9px 12px; border-top: 1px solid var(--line); white-space: nowrap; }
 tr.hot td { background: var(--red-soft); }
 .mini-btn { min-height: 36px; padding: 3px 12px; font-size: 13px; }
 /* シフト表 */
-.grid-wrap { overflow: auto; max-height: 70dvh; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.grid-wrap { overflow: auto; max-height: 70dvh; border: 1px solid var(--line); background: var(--surface); }
 .shift { font-size: 12px; border-collapse: separate; border-spacing: 0; }
 .shift thead th { position: sticky; top: 0; z-index: 2; }
 .shift th, .shift td { padding: 5px 0; text-align: center; min-width: 30px; border-left: 1px solid var(--line); border-top: 1px solid var(--line); }
 .shift .nm, .shift .st { position: sticky; background: var(--surface); text-align: left; z-index: 1; border-left: 0; }
-.shift .nm { left: 0; padding: 5px 10px; min-width: 104px; font-weight: 600; }
+.shift .nm { left: 0; padding: 5px 10px; min-width: 104px; font-weight: 700; }
 .shift .st { left: 104px; padding: 5px 10px; min-width: 112px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); box-shadow: 1px 0 0 var(--line); }
 .shift thead .nm, .shift thead .st { z-index: 3; background: var(--sunken); }
 .shift tfoot .nm, .shift tfoot .st { background: var(--sunken); }
@@ -76,11 +78,11 @@ tr.hot td { background: var(--red-soft); }
 .m-休 { color: var(--muted); opacity: .55; }
 .m-研, .m-M { color: var(--night); font-weight: 700; }
 .m-在 { color: var(--amber-ink); font-weight: 700; }
-.shift tfoot td { background: var(--sunken); font-weight: 600; }
+.shift tfoot td { background: var(--sunken); font-weight: 700; }
 .meter { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .meter i { display: block; height: 100%; background: var(--pine); }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.task-title { font-weight: 600; }
+.task-title { font-weight: 700; }
 .note { color: var(--muted); font-size: 13px; }
 .names { font-size: 13px; color: var(--muted); max-height: 130px; overflow: auto; }
 .thumbs { display: flex; gap: 4px; }
@@ -88,39 +90,27 @@ tr.hot td { background: var(--red-soft); }
 .sheet { max-width: 620px; }
 .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
 .photos figure { margin: 0; display: grid; gap: 4px; }
-.photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: var(--sunken); display: block; }
-.photos figcaption { font-size: 13px; font-weight: 600; }
+.photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; background: var(--sunken); display: block; }
+.photos figcaption { font-size: 13px; font-weight: 700; }
 .hist-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.teams-card { border: 1px solid var(--line); border-left: 4px solid var(--night); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; font-size: 14px; background: var(--sunken); }
+.teams-card { border: 1px solid var(--line); border-left: 4px solid var(--night); border-radius: 4px; padding: 12px 14px; display: grid; gap: 4px; font-size: 14px; background: var(--sunken); }
 .teams-card .ch { font-size: 12px; color: var(--muted); }
-.teams-card .open { justify-self: start; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px; background: var(--surface); font-weight: 600; font-size: 13px; }
+.teams-card .open { justify-self: start; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px; background: var(--surface); font-weight: 700; font-size: 13px; }
 .check { display: flex; align-items: center; gap: 8px; min-height: 36px; }
 .check input { width: 20px; height: 20px; accent-color: var(--pine); }
 /* 店舗登録 */
-#storeMap { height: 250px; border-radius: 12px; background: var(--sunken); z-index: 0; }
-.result { width: 100%; text-align: left; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; display: grid; gap: 1px; min-height: 44px; }
+#storeMap { height: 250px; border-radius: 4px; background: var(--sunken); z-index: 0; }
+.result { width: 100%; text-align: left; padding: 9px 12px; border: 1px solid var(--line); border-radius: 4px; display: grid; gap: 1px; min-height: 44px; }
 .result small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 #sfResults { display: grid; gap: 6px; max-height: 200px; overflow-y: auto; }
 .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-#toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); }
+#toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 4px; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); }
 @media (max-width: 860px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .side { position: sticky; top: 0; z-index: 8; height: auto; padding: calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px)); flex-direction: row; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
-  .side .brand { padding: 0 4px; font-size: 17px; }
-  .side .role { padding: 0 0 0 4px; font-size: 11px; }
-  .side .navs { order: 3; flex: 1 0 100%; display: flex; overflow-x: auto; gap: 2px; scrollbar-width: none; min-width: 0; }
-  .nav { width: auto; padding: 6px 10px; min-height: 40px; font-size: 13px; gap: 5px; }
-  .nav .ic { display: none; }
-  .nav .n { margin-left: 2px; line-height: 17px; min-width: 17px; padding: 0 4px; font-size: 10px; }
-  .side .foot { margin: 0 0 0 auto; display: flex; }
-  .proto-btn { padding: 3px 10px; min-height: 34px; font-size: 12px; }
-  .proto-btn span.long { display: none; }
   /* スマホは氏名の下に登録店舗を出して、日付の列を広く見せる */
   .shift .st { display: none; }
   .shift .nm { box-shadow: 1px 0 0 var(--line); line-height: 1.3; max-width: 118px; white-space: normal; }
   .shift .nm small { display: block; }
 }
-@media (min-width: 861px) { .navs { display: grid; gap: 4px; } }
 </style>
 </head>
 <body>
@@ -131,7 +121,8 @@ tr.hot td { background: var(--red-soft); }
 <div id="overlay"></div>
 <div id="toast" role="status" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="../assets/core.js?v=5"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../assets/core.js?v=6"></script>
 <script>
 (function () {
   'use strict';
@@ -139,7 +130,7 @@ tr.hot td { background: var(--red-soft); }
   const V = {
     page: 'today', f: { today: { area: 'all', pref: 'all' }, shift: { area: 'chugoku', pref: 'all' }, stores: { area: 'all', pref: 'all' }, stock: { area: 'all', pref: 'all' } },
     q: '', st: 'all', limit: 30, storeQ: '', storeLimit: 30, stockMonth: K.CUR_MONTH, stockStatus: 'all', stockEdit: false, stockLimit: 30,
-    open: {}, draft: { type: 'task', title: '', due: '', body: '', err: '' }, sheet: null, person: null, form: null, backing: false
+    open: {}, draft: { type: 'task', title: '', due: '', body: '', err: '' }, sheet: null, person: null, form: null, backing: false, bulk: null, bulkRun: 0
   };
   const $ = (id) => document.getElementById(id);
   const P = K.PEOPLE;
@@ -159,7 +150,7 @@ tr.hot td { background: var(--red-soft); }
     const nav = [['today', '今日の出勤', 'clock', pending().length + openFixes().length], ['shift', 'シフト', 'grid', 0], ['stores', '店舗', 'store', 0], ['stock', '棚卸し', 'box', wait], ['tasks', '提出物・お知らせ', 'list', 0], ['set', '設定', 'sliders', 0]];
     $('side').innerHTML = '<span class="brand">キョウモ</span><span class="role">管理者 ／ ' + esc(K.S.settings.company) + '</span><div class="navs">' +
       nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[2], 20) + n[1] + (n[3] ? '<span class="n num">' + n[3] + '</span>' : '') + '</button>').join('') +
-      '</div><div class="foot"><button class="proto-btn" data-sheet="demo">' + ic('sliders', 16) + '<span>試作<span class="long">の操作</span></span></button></div>';
+      '</div><div class="foot"><button class="proto-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button></div>';
   }
 
   /* 地方のチップと県の選択。各画面で共通 */
@@ -237,11 +228,70 @@ tr.hot td { background: var(--red-soft); }
     const show = list.slice(0, V.storeLimit);
     const homeCount = (id) => P.filter((p) => { const h = K.homeStore(p); return h && h.id === id; }).length;
     const todayCount = (id) => P.filter((p) => K.rec(p).storeId === id && K.rec(p).in != null).length;
-    return '<div class="head"><h1>店舗</h1><button class="btn primary" id="addStore">' + ic('store', 18) + '店舗を追加</button></div>' +
+    return '<div class="head"><h1>店舗</h1><div class="sel-row"><button class="btn" id="bulkStore">シフト表から一括登録</button><button class="btn primary" id="addStore">' + ic('store', 18) + '店舗を追加</button></div></div>' + requestsBlock() +
       regionFilter('stores', true, '<input id="storeQ" type="search" placeholder="店舗名で探す" value="' + esc(V.storeQ) + '" aria-label="店舗名で探す">') +
       '<section class="block"><p class="note">スタッフが打刻すると、ここに登録した店舗の位置と照らし合わせて、店舗を自動で判定します。登録店舗と違う店舗で打刻した場合は「応援」として記録します。</p></section>' +
       '<div class="tablebox"><table><thead><tr><th>店舗</th><th>県</th><th>登録スタッフ</th><th>今日の打刻</th><th></th></tr></thead><tbody>' + (show.map((s) => '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.pref) + '</td><td class="num">' + homeCount(s.id) + '人</td><td class="num">' + todayCount(s.id) + '人</td><td><button class="btn mini-btn" data-editstore="' + esc(s.id) + '">位置を確認</button></td></tr>').join('') || '<tr><td colspan="5" class="muted">条件に合う店舗はありません。</td></tr>') + '</tbody></table></div>' +
       '<div class="row"><span class="note num">' + list.length + '店舗中 ' + show.length + '店舗を表示</span>' + (list.length > V.storeLimit ? '<button class="btn" data-storemore="1">さらに表示</button>' : '') + '</div>';
+  }
+
+  function requestsBlock() {
+    const list = K.S.storeRequests.filter((r) => r.state === 'open');
+    if (!list.length) return '';
+    return '<section class="block"><h2>未登録店舗の申請</h2>' + list.map((r) => '<div class="alert-item"><div><b>' + esc(r.name) + '</b><div class="sub">' + esc(K.byId[r.pid].name) + ' ／ ' + esc(r.date) + ' ／ 打刻の位置つき</div></div><div class="sel-row"><button class="btn primary mini-btn" data-reqok="' + esc(r.id) + '">位置を確認して登録</button><button class="btn mini-btn" data-reqno="' + esc(r.id) + '">却下</button></div></div>').join('') + '</section>';
+  }
+  /* シフト表の店舗列だけを読み、順番に検索する */
+  function bulkSheet() {
+    const B = V.bulk, st = { ok: ['見つかった', 'ok'], many: ['候補を確認', 'warn'], none: ['見つからない', 'bad'], wait: ['待機中', 'idle'], done: ['登録済み', 'idle'] };
+    const body = B.items.length ? '<div class="tablebox"><table><thead><tr><th>店舗名</th><th>結果</th><th>候補</th></tr></thead><tbody>' + B.items.map((x, i) => '<tr><td><b>' + esc(x.name) + '</b></td><td><span class="pill ' + st[x.state][1] + '">' + st[x.state][0] + '</span></td><td style="white-space:normal;min-width:190px">' + (x.cands && x.cands.length ? '<select data-bulkpick="' + i + '" aria-label="' + esc(x.name) + 'の候補">' + x.cands.map((c, n) => '<option value="' + n + '"' + (n === x.sel ? ' selected' : '') + '>' + esc(c.addr.slice(0, 40)) + '</option>').join('') + '</select>' : '—') + '</td></tr>').join('') + '</tbody></table></div>' : '';
+    const ready = B.items.filter((x) => x.cands && x.cands.length && x.state !== 'done').length;
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="一括登録"><h2>シフト表から一括登録</h2><p class="note">Excelの「入店店舗名」の列だけを読みます。ファイルは送信しません。店舗名だけ、位置の検索に使います。</p>' +
+      '<div class="field"><label for="bulkFile">シフト表（Excel）</label><input id="bulkFile" type="file" accept=".xlsx,.xlsm,.xls"></div>' +
+      '<div class="field"><label for="bulkText">または店舗名を1行ずつ貼り付け</label><textarea id="bulkText" placeholder="エディオン山口本店">' + esc(B.text) + '</textarea></div>' +
+      '<button class="btn" id="bulkRead">この内容で探す</button>' +
+      (B.msg ? '<p class="note" id="bulkMsg">' + esc(B.msg) + '</p>' : '') + body +
+      (ready ? '<button class="btn primary" id="bulkSave" style="min-height:50px">' + ready + '店舗を登録する</button>' : '') +
+      '<button class="btn" data-close="1">閉じる</button></div>';
+  }
+  function setBulk(names) {
+    V.bulk.items = names.map((name) => ({ name, state: 'wait', cands: [], sel: 0 }));
+    V.bulk.msg = names.length + '店舗が見つかりました。順番に検索します。';
+    renderOverlay();
+    runBulk(++V.bulkRun);
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function runBulk(run) {
+    const items = V.bulk.items;
+    for (let i = 0; i < items.length; i++) {
+      if (run !== V.bulkRun || V.sheet !== 'bulk') return;
+      const x = items[i];
+      try {
+        const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=3&countrycodes=jp&accept-language=ja&q=' + encodeURIComponent(x.name)).then((r) => r.json());
+        x.cands = (Array.isArray(res) ? res : []).map((c) => ({ addr: c.display_name, lat: +c.lat, lng: +c.lon }));
+        x.state = x.cands.length === 1 ? 'ok' : x.cands.length ? 'many' : 'none';
+      } catch (e) { x.state = 'none'; }
+      V.bulk.msg = (i + 1) + ' / ' + items.length + ' 店舗を検索しました。';
+      if (V.sheet === 'bulk') renderOverlay();
+      await wait(1100);
+    }
+    if (run === V.bulkRun && V.sheet === 'bulk') { V.bulk.msg = '検索が終わりました。候補を確認して登録してください。'; renderOverlay(); }
+  }
+  function storeNamesFromSheet(wb) {
+    const set = new Set();
+    wb.SheetNames.forEach((n) => {
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, blankrows: false });
+      let col = -1;
+      rows.forEach((r) => {
+        const at = r.findIndex((v) => String(v == null ? '' : v).includes('入店店舗名'));
+        if (at >= 0) { col = at; return; }
+        if (col < 0) return;
+        const v = r[col];
+        if (v == null) return;
+        const name = K.cleanStoreName(v);
+        if (name && name !== '-' && name !== 'スケジュール') set.add(name);
+      });
+    });
+    return Array.from(set);
   }
 
   function storeSheet() {
@@ -277,7 +327,7 @@ tr.hot td { background: var(--red-soft); }
     map.setView(ll, zoom || map.getZoom());
   }
   function openStoreForm(s) {
-    V.form = s ? { id: s.id, name: s.name, pref: s.pref, lat: s.lat, lng: s.lng } : { id: null, name: '', pref: '', lat: null, lng: null };
+    V.form = s ? { id: s.id, name: s.name, pref: s.pref, lat: s.lat, lng: s.lng, fromReq: s.fromReq } : { id: null, name: '', pref: '', lat: null, lng: null };
     V.sheet = 'store';
     map = marker = circle = null;
     $('overlay').innerHTML = storeSheet();
@@ -398,11 +448,12 @@ tr.hot td { background: var(--red-soft); }
   }
 
   function demoSheet() {
-    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 5 ／ データは架空のサンプルで、この端末の中だけに保存します。地図：地理院タイル、OpenStreetMap。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 6 ／ データは架空のサンプルで、この端末の中だけに保存します。地図：地理院タイル、OpenStreetMap。</p><button class="btn primary" data-close="1">閉じる</button></div>';
   }
 
   function renderOverlay() {
     if (V.sheet === 'demo') $('overlay').innerHTML = demoSheet();
+    else if (V.sheet === 'bulk') $('overlay').innerHTML = bulkSheet();
     else if (V.sheet === 'person') { $('overlay').innerHTML = personSheet(); K.hydratePhotos($('overlay')); }
     else if (V.sheet !== 'store') $('overlay').innerHTML = '';
   }
@@ -462,6 +513,29 @@ tr.hot td { background: var(--red-soft); }
     if (b.id === 'csv') { csv(); return; }
     if (b.id === 'remindAll') { K.S.reminded.stock = true; K.save(); render(); toast('未提出の人に催促を送りました'); return; }
     if (b.id === 'addStore') { openStoreForm(null); return; }
+    if (b.id === 'bulkStore') { V.bulk = { text: '', items: [], msg: '' }; V.sheet = 'bulk'; renderOverlay(); return; }
+    if (b.id === 'bulkRead') {
+      const names = Array.from(new Set($('bulkText').value.split(/\n/).map(K.cleanStoreName).filter(Boolean)));
+      V.bulk.text = $('bulkText').value;
+      if (!names.length) { V.bulk.msg = 'ファイルを選ぶか、店舗名を入れてください。'; renderOverlay(); return; }
+      setBulk(names); return;
+    }
+    if (b.id === 'bulkSave') {
+      let n = 0;
+      V.bulk.items.forEach((x) => {
+        if (!x.cands.length || x.state === 'done') return;
+        const c = x.cands[x.sel || 0], pref = K.prefFromText(c.addr);
+        if (!pref) return;
+        K.addStore({ name: x.name, pref, area: K.PREF_AREA[pref], lat: c.lat, lng: c.lng });
+        x.state = 'done'; n++;
+      });
+      V.bulkRun++; closeSheet(); render(); toast(n + '店舗を登録しました'); return;
+    }
+    if (d.reqok) {
+      const r = K.S.storeRequests.find((y) => y.id === d.reqok);
+      openStoreForm({ id: null, name: r.name, pref: K.byId[r.pid].pref, lat: r.lat, lng: r.lng, fromReq: r.id }); return;
+    }
+    if (d.reqno) { const r = K.S.storeRequests.find((y) => y.id === d.reqno); r.state = 'no'; K.save(); render(); toast('申請を却下しました'); return; }
     if (d.editstore) { openStoreForm(K.store(d.editstore)); return; }
     if (b.id === 'sfSearch') { searchStore(); return; }
     if (b.id === 'sfHere') {
@@ -484,7 +558,18 @@ tr.hot td { background: var(--red-soft); }
       const msg = !name ? '店舗名を入れてください。' : !pref ? '都道府県を選んでください。' : F.lat == null ? '店舗の位置を決めてください。' : '';
       if (msg) { err.textContent = msg; err.hidden = false; return; }
       const data = { name, pref, area: K.PREF_AREA[pref], lat: F.lat, lng: F.lng };
-      if (F.id) K.updateStore(F.id, data); else K.addStore(data);
+      if (F.id) K.updateStore(F.id, data);
+      else {
+        const nid = K.addStore(data);
+        if (F.fromReq) {
+          const r = K.S.storeRequests.find((y) => y.id === F.fromReq);
+          r.state = 'ok';
+          /* 申請と同じ打刻を、登録した店舗の応援に付け替える */
+          const pu = K.S.punches[r.pid];
+          if (pu) { pu.storeId = nid; pu.loc = 'in'; pu.dist = 0; }
+          K.save();
+        }
+      }
       closeSheet(); render(); toast('店舗を保存しました'); return;
     }
     if (b.id === 'sfDelete') { K.removeStore(V.form.id); closeSheet(); render(); toast('店舗を削除しました'); return; }
@@ -535,6 +620,16 @@ tr.hot td { background: var(--red-soft); }
   });
   document.addEventListener('change', (e) => {
     const t = e.target, s = K.S.settings, d = t.dataset;
+    if (t.id === 'bulkFile' && t.files[0]) {
+      if (!window.XLSX) { V.bulk.msg = 'Excelの読み込み部品を準備できませんでした。店舗名を貼り付けてください。'; renderOverlay(); return; }
+      t.files[0].arrayBuffer().then((buf) => {
+        const names = storeNamesFromSheet(XLSX.read(buf, { type: 'array' }));
+        if (!names.length) { V.bulk.msg = '「入店店舗名」の列が見つかりませんでした。'; renderOverlay(); return; }
+        setBulk(names);
+      }).catch(() => { V.bulk.msg = 'ファイルを読み込めませんでした。'; renderOverlay(); });
+      return;
+    }
+    if (d.bulkpick !== undefined) { V.bulk.items[+d.bulkpick].sel = +t.value; return; }
     if (t.id === 'fpref') { V.f[d.fkey].pref = t.value; V.limit = 30; V.stockLimit = 30; V.storeLimit = 30; render(); }
     if (t.id === 'st') { V.st = t.value; V.limit = 30; renderTable(); }
     if (t.id === 'stockStatus') { V.stockStatus = t.value; V.stockLimit = 30; render(); }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0B4A3B">
+<meta name="theme-color" content="#17305C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="キョウモ">
@@ -14,100 +14,118 @@
 <title>キョウモ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="assets/base.css?v=5">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/base.css?v=6">
 <style>
 /* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
 #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
 .top { background: var(--pine-deep); color: var(--on-deep); padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); }
 .bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
 .bar .brand { font-size: 18px; }
-.demo-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--on-deep); min-height: 34px; }
-.sub-title { font-family: var(--display); font-weight: 900; font-size: 21px; margin-top: 4px; }
+.demo-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 3px; padding: 5px 12px; font-size: 12px; font-weight: 700; color: var(--on-deep); min-height: 34px; }
+.sub-title { font-family: var(--display); font-weight: 700; font-size: 21px; margin-top: 4px; }
 .when { color: var(--on-deep-muted); font-size: 13px; margin-top: 6px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.clock { display: flex; align-items: baseline; gap: 6px; font-weight: 600; line-height: 1; margin-top: 8px; letter-spacing: .01em; }
-.clock b { font-size: clamp(60px, 19vw, 74px); font-weight: 600; }
+.clock { display: flex; align-items: baseline; gap: 6px; font-weight: 700; line-height: 1; margin-top: 8px; letter-spacing: .01em; }
+.clock b { font-size: clamp(60px, 19vw, 74px); font-weight: 700; }
 .clock span { font-size: 24px; color: var(--on-deep-muted); }
 .main { padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .main.home { padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px)); }
 .main.page { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
-.card { background: var(--surface); border-radius: 14px; padding: 13px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; box-shadow: 0 1px 0 var(--line); }
+.card { background: var(--surface); border-radius: 4px; padding: 13px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; border: 1px solid var(--line); }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; }
 .today-site { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
-.alarm { background: var(--red); color: var(--on-red); border-radius: 14px; padding: 13px 14px; display: grid; gap: 3px; }
+.alarm { background: var(--red); color: var(--on-red); border-radius: 4px; padding: 13px 14px; display: grid; gap: 3px; }
 .alarm b { font-size: 15px; }
 .alarm span { font-size: 13px; }
 .times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.time-cell { background: var(--surface); border-radius: 14px; padding: 11px 14px; box-shadow: 0 1px 0 var(--line); min-width: 0; }
+.time-cell { background: var(--surface); border-radius: 4px; padding: 11px 14px; border: 1px solid var(--line); min-width: 0; }
 .time-cell small { display: block; color: var(--muted); font-size: 12px; }
-.time-cell b { font-size: 26px; font-weight: 600; line-height: 1.25; }
+.time-cell b { font-size: 26px; font-weight: 700; line-height: 1.25; }
 .loc-line { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
-.linkcard { width: 100%; text-align: left; background: var(--surface); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 1px 0 var(--line); min-height: 54px; }
+.linkcard { width: 100%; text-align: left; background: var(--surface); border-radius: 4px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); min-height: 54px; }
 /* 打刻ドック */
 .dock { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, var(--bg) 78%, transparent); padding: 18px max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; z-index: 10; }
-.punch { border-radius: 18px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--display); font-weight: 900; font-size: 24px; transition: transform .08s; position: relative; }
-.punch small { font-family: var(--sans); font-weight: 500; font-size: 12px; opacity: .9; }
+.punch { border-radius: 4px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--display); font-weight: 700; font-size: 24px; transition: transform .08s; position: relative; }
+.punch small { font-family: var(--sans); font-weight: 400; font-size: 12px; opacity: .9; }
 .punch:active:not(:disabled) { transform: scale(.97); }
-.punch.in.on { background: var(--pine); color: var(--on-pine); box-shadow: var(--shadow); }
-.punch.out.on { background: var(--night); color: var(--on-night); box-shadow: var(--shadow); }
+.punch.in.on { background: var(--pine); color: var(--on-pine); box-shadow: none; }
+.punch.out.on { background: var(--night); color: var(--on-night); box-shadow: none; }
 .punch:disabled { background: var(--surface); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); cursor: default; font-size: 20px; }
 .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid currentColor; border-right-color: transparent; animation: sp .8s linear infinite; }
 @keyframes sp { to { transform: rotate(360deg); } }
 /* タブ */
 .tabs { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 480px; background: var(--surface); box-shadow: 0 -1px 0 var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 4px max(4px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); z-index: 11; }
-.tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 52px; color: var(--muted); font-size: 11px; font-weight: 500; position: relative; border-radius: 10px; }
+.tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 52px; color: var(--muted); font-size: 11px; font-weight: 400; position: relative; border-radius: 4px; }
 .tabs button[aria-current="page"] { color: var(--pine-ink); font-weight: 700; }
-.tabs .dot { position: absolute; top: 3px; left: calc(50% + 6px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--red); color: var(--on-red); font-size: 10px; line-height: 16px; text-align: center; }
+.tabs .dot { position: absolute; top: 3px; left: calc(50% + 6px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 4px; background: var(--red); color: var(--on-red); font-size: 10px; line-height: 16px; text-align: center; }
 /* 下位ページ */
-.page-title { font-family: var(--display); font-weight: 900; font-size: 21px; }
-.section-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+.page-title { font-family: var(--display); font-weight: 700; font-size: 21px; }
+.section-label { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 4px; }
 .task { width: 100%; text-align: left; }
 .task b { font-size: 15px; }
-.back { display: inline-flex; align-items: center; gap: 2px; color: var(--on-deep); font-weight: 600; min-height: 40px; }
+.back { display: inline-flex; align-items: center; gap: 2px; color: var(--on-deep); font-weight: 700; min-height: 40px; }
 .step-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); }
 .step-row:last-child { border-bottom: 0; }
 .steps { display: flex; align-items: center; gap: 4px; }
-.steps button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--sunken); font-size: 20px; }
-.steps span { width: 34px; text-align: center; font-size: 18px; font-weight: 600; }
-.diff { color: var(--red-ink); font-size: 12px; font-weight: 600; display: block; }
+.steps button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunken); font-size: 20px; }
+.steps span { width: 34px; text-align: center; font-size: 18px; font-weight: 700; }
+.diff { color: var(--red-ink); font-size: 12px; font-weight: 700; display: block; }
 .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.summary div { background: var(--surface); border-radius: 12px; padding: 10px; box-shadow: 0 1px 0 var(--line); }
+.summary div { background: var(--surface); border-radius: 4px; padding: 10px; border: 1px solid var(--line); }
 .summary small { display: block; color: var(--muted); font-size: 11px; }
-.summary b { font-size: 22px; font-weight: 600; }
+.summary b { font-size: 22px; font-weight: 700; }
 .hist-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 8px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .hist-row:last-child { border-bottom: 0; }
-.safe { background: var(--pine-soft); color: var(--pine-ink); border-radius: 14px; padding: 14px; display: grid; gap: 4px; font-size: 14px; }
-.safe b { font-family: var(--display); font-weight: 900; font-size: 17px; }
+.safe { background: var(--pine-soft); color: var(--pine-ink); border-radius: 4px; padding: 14px; display: grid; gap: 4px; font-size: 14px; }
+.safe b { font-family: var(--display); font-weight: 700; font-size: 17px; }
 .contact { font-weight: 700; overflow-wrap: anywhere; }
 .bullets { margin: 0; padding-left: 1.2em; display: grid; gap: 5px; font-size: 14px; }
 /* 通知とスナックバー */
-.banner { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: calc(100% - 20px); max-width: 460px; background: var(--surface); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); z-index: 30; display: grid; gap: 2px; animation: drop .25s ease-out; }
+.banner { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: calc(100% - 20px); max-width: 460px; background: var(--surface); border-radius: 4px; padding: 12px 14px; box-shadow: none; z-index: 30; display: grid; gap: 2px; animation: drop .25s ease-out; }
 .banner b { display: flex; align-items: center; gap: 6px; color: var(--red-ink); font-size: 14px; }
 .banner span { font-size: 13px; }
 @keyframes drop { from { transform: translate(-50%, -24px); opacity: 0; } }
-.snack { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(176px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 28px); max-width: 452px; background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 20; font-size: 14px; }
+.snack { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(176px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 28px); max-width: 452px; background: var(--ink); color: var(--bg); border-radius: 4px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 20; font-size: 14px; }
 .snack.low { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 .snack button { flex: none; white-space: nowrap; font-weight: 700; text-decoration: underline; min-height: 34px; padding-inline: 6px; color: var(--bg); }
 .proto { font-size: 12px; color: var(--muted); }
-.site-note { font-size: 15px; font-weight: 500; }
+.site-note { font-size: 15px; font-weight: 400; }
 .slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .slot { display: grid; gap: 5px; min-width: 0; }
 .slot b { font-size: 14px; }
-.slot .shot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 4 / 3; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--sunken); color: var(--pine-ink); font-weight: 600; font-size: 13px; overflow: hidden; cursor: pointer; text-align: center; }
+.slot .shot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 4 / 3; border: 1.5px dashed var(--line); border-radius: 4px; background: var(--sunken); color: var(--pine-ink); font-weight: 700; font-size: 13px; overflow: hidden; cursor: pointer; text-align: center; }
 .slot .shot.has { border-style: solid; }
 .slot .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.slot .again { position: absolute; right: 6px; bottom: 6px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+.slot .again { position: absolute; right: 6px; bottom: 6px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 3px; }
 .slot small { color: var(--muted); font-size: 11px; line-height: 1.4; }
 .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
-.pick { width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; min-height: 50px; display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 600; }
+.pick { width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; min-height: 50px; display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 700; }
 .pick small { font-weight: 400; color: var(--muted); }
 .seg.five button { font-size: 12px; padding-inline: 2px; }
+/* デザインA: 上は紺の帯、時刻は白地、情報は罫線の行で並べる */
+.top { padding-bottom: 10px; }
+.clock-sec { background: var(--surface); border-bottom: 1px solid var(--line); padding: 16px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); }
+.clock-sec .when { color: var(--muted); margin: 0; }
+.clock-sec .clock { margin-top: 2px; color: var(--ink); font-weight: 700; }
+.clock-sec .clock b { font-weight: 700; font-size: clamp(54px, 16vw, 64px); }
+.clock-sec .clock span { color: var(--muted); font-size: 20px; }
+.rows { background: var(--surface); border-bottom: 1px solid var(--line); }
+.rows .line { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 46px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--sunken); width: 100%; text-align: left; }
+.rows .line:last-child { border-bottom: 0; }
+.rows .line > span:first-child { color: var(--muted); flex: none; }
+.rows .line strong { text-align: right; overflow-wrap: anywhere; }
+.main.home { padding: 0 0 calc(176px + env(safe-area-inset-bottom, 0px)); gap: 0; }
+.home .alarm { border-radius: 0; }
+.home .loc-line { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+.dock { background: var(--bg); border-top: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); gap: 8px; }
+.punch { min-height: 88px; border-radius: 4px; }
+.pick.req { color: var(--pine-ink); border-style: dashed; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=5"></script>
+<script src="assets/core.js?v=6"></script>
 <script>
 (function () {
   'use strict';
@@ -138,9 +156,9 @@
     if (title) {
       return '<header class="top"><div class="bar">' + (V.sub ? '<button class="back" data-back="1">' + ic('back', 20) + '戻る</button>' : '<span class="brand">キョウモ</span>') + demoBtn() + '</div><h1 class="sub-title">' + esc(title) + '</h1></header>';
     }
-    return '<header class="top"><div class="bar"><span class="brand">キョウモ</span>' + demoBtn() + '</div>' +
-      '<div class="clock num"><b id="clockHM">' + fmt(now) + '</b><span id="clockS">' + sec + '</span></div>' +
-      '<div class="when"><span>' + dateLabel + (K.isTest() ? '　テスト時刻' : '') + '</span><span>' + esc(p.name) + 'さん</span></div></header>';
+    return '<header class="top"><div class="bar"><span class="brand">キョウモ</span>' + demoBtn() + '</div></header>' +
+      '<section class="clock-sec"><div class="when"><span>' + dateLabel + (K.isTest() ? '　テスト時刻' : '') + '</span><span>' + esc(p.name) + '</span></div>' +
+      '<div class="clock num"><b id="clockHM">' + fmt(now) + '</b><span id="clockS">' + sec + '</span></div></section>';
   }
   const demoBtn = () => '<button class="demo-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button>';
 
@@ -151,25 +169,18 @@
       h += '<div class="alarm" role="alert"><b>' + fmt(dl) + 'を過ぎましたが、出勤の記録がありません</b><span>' + (K.S.settings.target === 'both' ? '管理者にも通知されています。' : '') + '現場にいる場合は「出勤」を押してください。</span></div>';
     }
     if (K.S.reminded.stock && stockState() === 'todo') h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
-    h += '<section class="card"><div class="row"><span class="muted small">今日の現場</span><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></div>';
-    if (r.in != null) {
-      h += '<div class="today-site">' + esc(site ? site.name : '店舗の判定なし') + (help ? ' <span class="pill warn">応援</span>' : '') + '</div>';
-      if (help && home) h += '<div class="small muted">登録店舗は ' + esc(home.name) + ' です</div>';
-    } else if (home) {
-      h += '<div class="today-site">' + esc(home.name) + '</div>';
-    } else {
-      h += '<div class="today-site site-note">出勤を押すと、今いる店舗を自動で判定します</div>';
-    }
-    h += '<div class="small muted">' + esc(K.MARKS[p.today]) + ' ／ 出勤の確認 ' + fmt(dl) + '</div></section>';
-    h += '<section class="times"><div class="time-cell"><small>出勤</small><b class="num">' + (r.in != null ? fmt(r.in) : '--:--') + '</b>' + (r.loc ? '<div><span class="pill ' + K.locInfo(r.loc).pill + '">' + esc(K.locInfo(r.loc).short) + '</span></div>' : '') + '</div>' +
-      '<div class="time-cell"><small>退勤</small><b class="num">' + (r.out != null ? fmt(r.out) : '--:--') + '</b>' + (r.outLoc ? '<div><span class="pill ' + K.locInfo(r.outLoc).pill + '">' + esc(K.locInfo(r.outLoc).short) + '</span></div>' : '') + '</div></section>';
-    if (r.in != null && r.loc) {
-      h += '<div class="loc-line">' + ic('pin', 16) + '<span>' + esc(K.locInfo(r.loc, r.dist, r.acc).detail) + '</span></div>';
-    } else {
-      h += '<div class="loc-line">' + ic('pin', 16) + '<span>位置は打刻の瞬間だけ確認します。応援先でも、そのまま押せます</span></div>';
-    }
+    const siteText = r.in != null ? (site ? site.name : '判定なし') : (home ? home.name : '出勤時に自動で判定');
     const todo = openTasks();
-    if (todo.length) h += '<button class="linkcard" data-tab="todo"><span>やることが <b class="num">' + todo.length + '</b> 件（最短の締切 ' + esc(todo[0].due || 'なし') + '）</span>' + ic('chev', 18) + '</button>';
+    h += '<section class="rows">' +
+      '<div class="line"><span>今日の店舗</span><strong>' + esc(siteText) + (help ? ' <span class="pill warn">応援</span>' : '') + '</strong></div>' +
+      (help && home ? '<div class="line"><span>登録店舗</span><strong>' + esc(home.name) + '</strong></div>' : '') +
+      '<div class="line"><span>シフト</span><strong>' + esc(K.MARKS[p.today]) + '　確認 ' + fmt(dl) + '</strong></div>' +
+      '<div class="line"><span>状態</span><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></div>' +
+      '<div class="line"><span>出勤</span><strong class="num">' + (r.in != null ? fmt(r.in) : '--:--') + (r.loc ? ' <span class="pill ' + K.locInfo(r.loc).pill + '">' + esc(K.locInfo(r.loc).short) + '</span>' : '') + '</strong></div>' +
+      '<div class="line"><span>退勤</span><strong class="num">' + (r.out != null ? fmt(r.out) : '--:--') + (r.outLoc ? ' <span class="pill ' + K.locInfo(r.outLoc).pill + '">' + esc(K.locInfo(r.outLoc).short) + '</span>' : '') + '</strong></div>' +
+      (todo.length ? '<button class="line" data-tab="todo"><span>やること</span><strong><span class="num">' + todo.length + '</span>件　締切 ' + esc(todo[0].due || 'なし') + '</strong></button>' : '') +
+      '</section>';
+    h += '<div class="loc-line">' + ic('pin', 16) + '<span>' + (r.in != null && r.loc ? esc(K.locInfo(r.loc, r.dist, r.acc).detail) : '位置は打刻の瞬間だけ確認します') + '</span></div>';
     h += '</main>';
     const inOn = r.in == null, outOn = r.in != null && r.out == null, busy = V.busy;
     h += '<div class="dock">' +
@@ -279,7 +290,7 @@
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
       '<button class="btn" data-reset="1">最初の状態に戻す</button>' +
-      '<p class="proto">試作版 5 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<p class="proto">試作版 6 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
   }
   function gpsSheet() {
@@ -323,7 +334,7 @@
         setTimeout(() => {
           if (mode === 'in') resolve({ cands: [{ store: first, dist: 32 }] });
           else if (mode === 'help') resolve({ cands: [{ store: other, dist: 41 }] });
-          else if (mode === 'out') resolve({ cands: [], loc: 'out', dist: 1800, near: area.slice(0, 5).map((store) => ({ store })) });
+          else if (mode === 'out') resolve({ cands: [], loc: 'out', dist: 1800, near: area.slice(0, 5).map((store) => ({ store })), lat: first.lat + 0.016, lng: first.lng + 0.004 });
           else resolve({ cands: [], loc: 'none', near: area.slice(0, 5).map((store) => ({ store })) });
         }, 500);
         return;
@@ -334,7 +345,7 @@
         const c = pos.coords, r = K.S.settings.radius, cands = K.matchStores(c.latitude, c.longitude, r);
         if (cands.length) { resolve({ cands, acc: c.accuracy }); return; }
         const near = K.nearestStores(c.latitude, c.longitude, 5);
-        resolve({ cands: [], loc: c.accuracy > Math.max(500, r * 2) ? 'low' : 'out', dist: near.length ? near[0].dist : null, acc: c.accuracy, near });
+        resolve({ cands: [], loc: c.accuracy > Math.max(500, r * 2) ? 'low' : 'out', dist: near.length ? near[0].dist : null, acc: c.accuracy, near, lat: c.latitude, lng: c.longitude });
       }, fail, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
     });
   }
@@ -352,8 +363,8 @@
     if (g.cands.length === 1) { finish(kind, at, g.cands[0].store.id, 'in', g.cands[0].dist, g.acc); return; }
     if (g.cands.length > 1) { V.pick = { kind, at, g, opts: g.cands, flagged: false }; V.sheet = 'pick'; render(); return; }
     if (kind === 'out') { finish(kind, at, rec.storeId || (home && home.id) || null, g.loc, g.dist, g.acc); return; }
-    if (home) { finish(kind, at, home.id, g.loc, g.dist, g.acc); return; }
-    V.pick = { kind, at, g, opts: g.near || [], flagged: true }; V.sheet = 'pick'; render();
+    if (home && (g.loc === 'none')) { finish(kind, at, home.id, g.loc, g.dist, g.acc); return; }
+    V.pick = { kind, at, g, opts: g.near || [], flagged: true, home }; V.sheet = 'pick'; render();
   }
   function finish(kind, at, storeId, loc, dist, acc) {
     const p = me();
@@ -370,8 +381,15 @@
   }
   function pickSheet() {
     const x = V.pick, label = x.kind === 'in' ? '出勤' : '退勤';
-    return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗を選ぶ"><h2>' + (x.flagged ? '近くに登録店舗が見つかりません' : '近くに複数の店舗があります') + '</h2><p class="small muted">' + (x.flagged ? '今いる店舗を選んでください。管理者に確認の印が付きます。' : label + 'する店舗を選んでください。') + '</p>' +
-      x.opts.map((o) => '<button class="pick" data-pickstore="' + esc(o.store.id) + '"><span>' + esc(o.store.name) + '</span>' + (o.dist != null ? '<small class="num">' + (o.dist >= 1000 ? (o.dist / 1000).toFixed(1) + 'km' : Math.round(o.dist) + 'm') + '</small>' : '') + '</button>').join('') +
+    if (x.request) {
+      return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗の申請"><h2>応援先の店舗を申請</h2><p class="small muted">この場所を登録店舗に追加するよう、管理者に申請します。今の位置を一緒に送ります。</p><div class="field"><label for="reqName">店舗名</label><input id="reqName" placeholder="例: エディオン山口本店"></div>' + (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') + '<button class="btn primary" id="sendReq" style="min-height:50px">' + label + 'を記録して申請する</button><button class="btn" data-pickcancel="1">やめる</button></div>';
+    }
+    const homeBtn = x.flagged && x.home ? '<button class="pick" data-pickstore="' + esc(x.home.id) + '"><span>登録店舗：' + esc(x.home.name) + '</span></button>' : '';
+    const others = x.opts.filter((o) => (!x.home || o.store.id !== x.home.id) && (o.dist == null || o.dist <= 30000));
+    const canReq = x.flagged && x.kind === 'in' && x.g.lat != null;
+    return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗を選ぶ"><h2>' + (x.flagged ? '近くに登録店舗が見つかりません' : '近くに複数の店舗があります') + '</h2><p class="small muted">' + (x.flagged ? '今いる店舗を選んでください。管理者に確認の印が付きます。' : label + 'する店舗を選んでください。') + '</p>' + homeBtn +
+      others.map((o) => '<button class="pick" data-pickstore="' + esc(o.store.id) + '"><span>' + esc(o.store.name) + '</span>' + (o.dist != null ? '<small class="num">' + (o.dist >= 1000 ? (o.dist / 1000).toFixed(1) + 'km' : Math.round(o.dist) + 'm') + '</small>' : '') + '</button>').join('') +
+      (canReq ? '<button class="pick req" id="openReq"><span>一覧にない店舗を申請する</span></button>' : '') +
       '<button class="btn" data-pickcancel="1">やめる</button></div>';
   }
 
@@ -383,7 +401,17 @@
     if (d.back) { V.sub = null; V.err = ''; V.draft = {}; render(); return; }
     if (d.sheet) { V.sheet = d.sheet; V.err = ''; renderOverlay(); return; }
     if (d.close) { V.sheet = null; V.err = ''; renderOverlay(); return; }
-    if (d.pickcancel) { V.sheet = null; V.pick = null; renderOverlay(); return; }
+    if (d.pickcancel) { V.sheet = null; V.pick = null; V.err = ''; renderOverlay(); return; }
+    if (b.id === 'openReq') { V.pick.request = true; V.err = ''; renderOverlay(); return; }
+    if (b.id === 'sendReq') {
+      const name = $('reqName').value.trim(), x = V.pick;
+      if (!name) { V.err = '店舗名を入れてください。'; renderOverlay(); return; }
+      const h = K.homeStore(me());
+      K.S.storeRequests.unshift({ id: 'rq' + Date.now(), pid: me().id, name, lat: x.g.lat, lng: x.g.lng, date: K.md(0), state: 'open' });
+      K.save(); V.err = '';
+      finish(x.kind, x.at, h ? h.id : null, x.g.loc, x.g.dist, x.g.acc);
+      return;
+    }
     if (d.pickstore) { const x = V.pick, o = x.opts.find((y) => y.store.id === d.pickstore); finish(x.kind, x.at, d.pickstore, x.flagged ? x.g.loc : 'in', o ? o.dist : x.g.dist, x.g.acc); return; }
     if (d.jump) {
       if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump);

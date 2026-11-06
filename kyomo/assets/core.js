@@ -2,7 +2,7 @@
    本番ではこのファイルをサーバー接続に置き換える。 */
 (function () {
   'use strict';
-  const KEY = 'kyomo-proto-v4';
+  const KEY = 'kyomo-proto-v5';
   const C = (n, pref, lat, lng) => ({ n, pref, lat, lng });
   const AREAS = [
     { id: 'hokkaido', name: '北海道', field: 15, sv: 1, cities: [C('札幌', '北海道', 43.062, 141.354), C('旭川', '北海道', 43.77, 142.365), C('帯広', '北海道', 42.923, 143.196)] },
@@ -137,7 +137,7 @@
 
   function fresh() {
     return {
-      v: 4,
+      v: 5,
       day: DAY_KEY,
       clock: null,
       persona: 'me1',
@@ -156,6 +156,7 @@
       invDraft: {},
       inv: {},
       stockTargets: {},
+      storeRequests: [],
       fixes: [
         { id: 'fx1', pid: PEOPLE[12].id, date: md(-1), kind: '退勤の打刻忘れ', detail: '19:05 に退勤しました', state: 'open' },
         { id: 'fx2', pid: PEOPLE[40].id, date: md(-2), kind: '出勤の打刻忘れ', detail: '09:50 に入店しました', state: 'open' }
@@ -178,13 +179,13 @@
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.v === 4 && s.day === DAY_KEY) {
+        if (s.v === 5 && s.day === DAY_KEY) {
           if (s.clock && Date.now() - s.clock.at > 30 * 60000) s.clock = null;
           return s;
         }
-        if (s.v === 4) {
+        if (s.v === 5) {
           const f = fresh();
-          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'gpsOk', 'gps', 'persona', 'inv', 'stockTargets', 'counts', 'invDraft'].forEach((k) => { f[k] = s[k]; });
+          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'gpsOk', 'gps', 'persona', 'inv', 'stockTargets', 'counts', 'invDraft', 'storeRequests'].forEach((k) => { f[k] = s[k]; });
           return f;
         }
       }
@@ -281,6 +282,9 @@
       const pats = [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, /@(-?\d+\.\d+),(-?\d+\.\d+)/, /[?&](?:q|ll|query|destination)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i, /^\s*(-?\d{1,2}\.\d+)\s*[,、 ]\s*(-?\d{2,3}\.\d+)\s*$/];
       for (const p of pats) { const m = p.exec(t); if (m) return { lat: +m[1], lng: +m[2] }; }
       return null;
+    },
+    cleanStoreName(name) {
+      return String(name || '').normalize('NFKC').replace(/[(（][^)）]*[)）]/g, '').replace(/\s*\d{3,}\s*$/, '').replace(/\s+/g, ' ').trim();
     },
     prefFromText(text) { return Object.keys(PREF_AREA).find((p) => String(text || '').includes(p)) || ''; },
 
