@@ -2,7 +2,7 @@
    本番ではこのファイルをサーバー接続に置き換える。 */
 (function () {
   'use strict';
-  const KEY = 'kyomo-proto-v5';
+  const KEY = 'kyomo-proto-v6';
   const C = (n, pref, lat, lng) => ({ n, pref, lat, lng });
   const AREAS = [
     { id: 'hokkaido', name: '北海道', field: 15, sv: 1, cities: [C('札幌', '北海道', 43.062, 141.354), C('旭川', '北海道', 43.77, 142.365), C('帯広', '北海道', 42.923, 143.196)] },
@@ -17,17 +17,28 @@
   ];
   const PREF_AREA = {};
   [['hokkaido', '北海道'], ['tohoku', '青森県 岩手県 宮城県 秋田県 山形県 福島県'], ['kanto', '茨城県 栃木県 群馬県 埼玉県 千葉県 東京都 神奈川県'], ['chubu', '山梨県 長野県 岐阜県 静岡県 愛知県 三重県'], ['hokuriku', '新潟県 富山県 石川県 福井県'], ['kansai', '滋賀県 京都府 大阪府 兵庫県 奈良県 和歌山県'], ['chugoku', '鳥取県 島根県 岡山県 広島県 山口県'], ['shikoku', '徳島県 香川県 愛媛県 高知県'], ['kyushu', '福岡県 佐賀県 長崎県 熊本県 大分県 宮崎県 鹿児島県 沖縄県']].forEach((x) => x[1].split(' ').forEach((p) => { PREF_AREA[p] = x[0]; }));
-  const ITEMS = [
-    { k: 'jacket', n: '制服ジャケット', u: '着', lent: 1 },
-    { k: 'polo', n: 'ポロシャツ', u: '枚', lent: 2 },
-    { k: 'incam', n: 'インカム本体', u: '台', lent: 1 },
-    { k: 'ear', n: 'イヤホンマイク', u: '個', lent: 1 },
-    { k: 'chg', n: 'インカム充電器', u: '個', lent: 1 }
-  ];
-  const PHOTO_SLOTS = [
-    { k: 'uniform', n: '制服一式', hint: 'ジャケットとポロシャツを広げて撮影' },
-    { k: 'incam', n: 'インカム一式', hint: '本体、イヤホンマイク、充電器を並べて撮影' }
-  ];
+  /* 棚卸しは制服とインカムで別物。写真は1点ずつ、識別できる印が見えるように撮る */
+  const KINDS = {
+    uniform: {
+      id: 'uniform', name: '制服', title: '制服棚卸し', mark: 'バーコード',
+      hint: 'バーコードが読めるように撮影してください',
+      units: [
+        { k: 'jacket-1', n: '制服ジャケット' },
+        { k: 'polo-1', n: 'ポロシャツ 1枚目' },
+        { k: 'polo-2', n: 'ポロシャツ 2枚目' }
+      ],
+      counts: []
+    },
+    incam: {
+      id: 'incam', name: 'インカム', title: 'インカム棚卸し', mark: 'スタッフコード',
+      hint: 'スタッフコードが読めるように撮影してください',
+      units: [{ k: 'body-1', n: 'インカム本体' }],
+      counts: [
+        { k: 'ear', n: 'イヤホンマイク', u: '個', lent: 1 },
+        { k: 'chg', n: 'インカム充電器', u: '個', lent: 1 }
+      ]
+    }
+  };
   const INV_STATUS = { wait: { label: '確認待ち', pill: 'warn' }, ok: { label: '確認済み', pill: 'ok' }, back: { label: '差し戻し', pill: 'bad' } };
   const MARKS = { '〇': '全日稼働', '休': '休み', '研': '研修', 'M': 'ミーティング', '在': '在宅' };
   const D0 = new Date();
@@ -137,7 +148,7 @@
 
   function fresh() {
     return {
-      v: 5,
+      v: 6,
       day: DAY_KEY,
       clock: null,
       persona: 'me1',
@@ -157,6 +168,8 @@
       inv: {},
       stockTargets: {},
       storeRequests: [],
+      session: null,
+      auth: { accounts: {}, fails: {} },
       fixes: [
         { id: 'fx1', pid: PEOPLE[12].id, date: md(-1), kind: '退勤の打刻忘れ', detail: '19:05 に退勤しました', state: 'open' },
         { id: 'fx2', pid: PEOPLE[40].id, date: md(-2), kind: '出勤の打刻忘れ', detail: '09:50 に入店しました', state: 'open' }
@@ -179,13 +192,13 @@
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.v === 5 && s.day === DAY_KEY) {
+        if (s.v === 6 && s.day === DAY_KEY) {
           if (s.clock && Date.now() - s.clock.at > 30 * 60000) s.clock = null;
           return s;
         }
-        if (s.v === 5) {
+        if (s.v === 6) {
           const f = fresh();
-          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'gpsOk', 'gps', 'persona', 'inv', 'stockTargets', 'counts', 'invDraft', 'storeRequests'].forEach((k) => { f[k] = s[k]; });
+          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'gpsOk', 'gps', 'persona', 'inv', 'stockTargets', 'counts', 'invDraft', 'storeRequests', 'session', 'auth'].forEach((k) => { f[k] = s[k]; });
           return f;
         }
       }
@@ -210,18 +223,18 @@
   }
   function samplePhoto(id, label) {
     const c = ['#3E6B5C', '#4A5C86', '#7A5C3E', '#5F6B7A'][hash(id) % 4];
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="' + c + '"/><rect x="70" y="60" width="260" height="180" rx="14" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-dasharray="10 8"/><text x="200" y="140" text-anchor="middle" font-size="26" font-family="sans-serif" fill="#fff">' + label + '</text><text x="200" y="178" text-anchor="middle" font-size="18" font-family="sans-serif" fill="#fff" fill-opacity=".8">サンプル写真</text></svg>';
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="' + c + '"/><rect x="70" y="60" width="260" height="180" rx="14" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-dasharray="10 8"/><text x="200" y="124" text-anchor="middle" font-size="24" font-family="sans-serif" fill="#fff">' + label + '</text><g fill="#fff"><rect x="130" y="142" width="4" height="40"/><rect x="138" y="142" width="2" height="40"/><rect x="144" y="142" width="6" height="40"/><rect x="154" y="142" width="2" height="40"/><rect x="160" y="142" width="4" height="40"/><rect x="170" y="142" width="8" height="40"/><rect x="182" y="142" width="2" height="40"/><rect x="188" y="142" width="4" height="40"/><rect x="198" y="142" width="2" height="40"/><rect x="204" y="142" width="6" height="40"/><rect x="214" y="142" width="4" height="40"/><rect x="222" y="142" width="2" height="40"/><rect x="228" y="142" width="8" height="40"/><rect x="240" y="142" width="2" height="40"/><rect x="246" y="142" width="4" height="40"/><rect x="254" y="142" width="6" height="40"/><rect x="264" y="142" width="4" height="40"/></g><text x="200" y="210" text-anchor="middle" font-size="17" font-family="sans-serif" fill="#fff" fill-opacity=".85">サンプル写真</text></svg>';
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
 
   const listeners = [];
   const K = {
-    AREAS, ITEMS, PHOTO_SLOTS, INV_STATUS, MARKS, PREF_AREA, YEAR, MONTH, TODAY, DAYS, PEOPLE, byId, weekday, md, monthKey, monthLabel, CUR_MONTH,
+    AREAS, KINDS, INV_STATUS, MARKS, PREF_AREA, YEAR, MONTH, TODAY, DAYS, PEOPLE, byId, weekday, md, monthKey, monthLabel, CUR_MONTH,
     stockDue: md(4),
     dayLabel: (d) => MONTH + '/' + d,
     S: load(),
     save() { try { localStorage.setItem(KEY, JSON.stringify(K.S)); } catch (e) { /* 無視 */ } },
-    reset() { const keep = K.S.persona; K.S = fresh(); K.S.persona = keep; K.save(); },
+    reset() { const keep = K.S.persona, session = K.S.session, auth = K.S.auth; K.S = fresh(); K.S.persona = keep; K.S.session = session; K.S.auth = auth; K.save(); },
     onChange(fn) { listeners.push(fn); },
     now() {
       const c = K.S.clock;
@@ -329,32 +342,49 @@
     },
     setDone(id, pid) { (K.S.done[id] = K.S.done[id] || {})[pid] = true; K.save(); },
 
-    /* 棚卸し。対象者は月ごとに変わる */
-    isTarget(mk, pid) {
-      const o = K.S.stockTargets[mk];
+    /* 棚卸し。対象者は月ごと、種類ごとに変わる */
+    isTarget(kind, mk, pid) {
+      const o = K.S.stockTargets[mk + ':' + kind];
       if (o && o[pid] !== undefined) return o[pid];
       if (byId[pid].sample) return mk === CUR_MONTH;
-      return hash('tg' + mk + pid) % 100 < 45;
+      return hash('tg' + kind + mk + pid) % 100 < 45;
     },
-    setTarget(mk, pid, on) { (K.S.stockTargets[mk] = K.S.stockTargets[mk] || {})[pid] = !!on; K.save(); },
-    invOf(mk, pid) {
-      const key = mk + ':' + pid;
+    setTarget(kind, mk, pid, on) { const k = mk + ':' + kind; (K.S.stockTargets[k] = K.S.stockTargets[k] || {})[pid] = !!on; K.save(); },
+    invOf(kind, mk, pid) {
+      const key = kind + ':' + mk + ':' + pid;
       if (K.S.inv[key]) return K.S.inv[key];
-      if (byId[pid].sample || !K.isTarget(mk, pid)) return null;
-      const h = hash('inv' + key) % 100, cur = mk === CUR_MONTH;
+      if (byId[pid].sample || !K.isTarget(kind, mk, pid)) return null;
+      const def = KINDS[kind], h = hash('inv' + key) % 100, cur = mk === CUR_MONTH;
       if (cur && h >= 58) return null;
       if (!cur && h >= 96) return null;
-      const miss = h % 23 === 0 ? [{ k: ITEMS[h % ITEMS.length].k, count: ITEMS[h % ITEMS.length].lent - 1 }] : [];
+      const photos = {}, missing = [], counts = {};
+      def.units.forEach((u) => { photos[u.k] = 'sample'; });
+      def.counts.forEach((c) => { counts[c.k] = c.lent; });
+      if (h % 23 === 0) {
+        if (kind === 'uniform') { const u = def.units[def.units.length - 1]; missing.push(u.k); delete photos[u.k]; } else counts.ear = 0;
+      }
       const status = cur ? (h < 26 ? 'ok' : (h % 17 === 0 ? 'back' : 'wait')) : 'ok';
       const day = cur ? md(-(1 + h % 5)) : mk.split('-')[1] + '/' + (3 + h % 7);
-      return { date: day, miss, status, photos: { uniform: 'sample', incam: 'sample' }, backNote: status === 'back' ? 'インカムの充電器が写っていません。撮り直してください。' : '' };
+      return { date: day, status, photos, missing, counts, backNote: status === 'back' ? def.mark + 'が読めません。撮り直してください。' : '' };
     },
-    setInv(mk, pid, inv) { K.S.inv[mk + ':' + pid] = inv; K.save(); },
-    countsOf(pid) {
-      if (!K.S.counts[pid]) K.S.counts[pid] = Object.fromEntries(ITEMS.map((i) => [i.k, i.lent]));
-      return K.S.counts[pid];
+    setInv(kind, mk, pid, inv) { K.S.inv[kind + ':' + mk + ':' + pid] = inv; K.save(); },
+    /* 貸与数との差を文章にする */
+    invDiffs(kind, inv) {
+      if (!inv) return [];
+      const def = KINDS[kind], out = [];
+      def.units.forEach((u) => { if ((inv.missing || []).includes(u.k)) out.push(u.n + ' が手元にない'); });
+      def.counts.forEach((c) => { const v = (inv.counts || {})[c.k]; if (v !== undefined && v !== c.lent) out.push(c.n + ' ' + c.lent + '→' + v + c.u); });
+      return out;
     },
-    draftOf(pid) { if (!K.S.invDraft[pid]) K.S.invDraft[pid] = {}; return K.S.invDraft[pid]; },
+    draftOf(kind, pid) {
+      const key = kind + ':' + pid;
+      if (!K.S.invDraft[key]) {
+        const counts = {};
+        KINDS[kind].counts.forEach((c) => { counts[c.k] = c.lent; });
+        K.S.invDraft[key] = { photos: {}, missing: {}, counts };
+      }
+      return K.S.invDraft[key];
+    },
     async photoPut(id, dataUrl) {
       const d = await photoDb();
       if (!d) { memPhotos[id] = dataUrl; return; }

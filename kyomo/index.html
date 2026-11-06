@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/base.css?v=6">
+<link rel="stylesheet" href="assets/base.css?v=7">
 <style>
 /* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
 #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
@@ -119,13 +119,26 @@
 .home .loc-line { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
 .dock { background: var(--bg); border-top: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); gap: 8px; }
 .punch { min-height: 88px; border-radius: 4px; }
+.units { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.units .shot { aspect-ratio: 16 / 10; }
+.units .shot small { font-weight: 400; color: var(--muted); }
+.units .shot > span:only-child { color: var(--muted); }
+.nohave { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); min-height: 36px; }
+.nohave input { width: 20px; height: 20px; accent-color: var(--pine); }
+.auth { min-height: 100dvh; display: flex; flex-direction: column; }
+.auth .top { flex: none; }
+.auth form { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 28px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.auth h1 { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.auth .links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.auth .link { color: var(--pine-ink); text-decoration: underline; min-height: 40px; font-size: 14px; }
+.auth .demo { background: var(--amber-soft); color: var(--amber-ink); padding: 10px 12px; font-size: 13px; }
 .pick.req { color: var(--pine-ink); border-style: dashed; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=6"></script>
+<script src="assets/core.js?v=7"></script>
 <script>
 (function () {
   'use strict';
@@ -137,16 +150,19 @@
   const firstName = () => me().name.split(' ')[0];
   const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
 
-  const stockState = () => {
+  const stockState = (kind) => {
     const p = me(), mk = K.CUR_MONTH;
-    if (!K.isTarget(mk, p.id)) return 'none';
-    const i = K.invOf(mk, p.id);
+    if (!K.isTarget(kind, mk, p.id)) return 'none';
+    const i = K.invOf(kind, mk, p.id);
     return !i ? 'todo' : (i.status === 'back' ? 'back' : 'done');
   };
+  const KIND_IDS = ['uniform', 'incam'];
   const openTasks = () => {
     const t = K.tasks().filter((x) => !K.isDone(x.id, me().id, 0)).map((x) => ({ id: x.id, title: x.title, due: x.due, kind: 'task' }));
-    const ss = stockState();
-    if (ss === 'todo' || ss === 'back') t.unshift({ id: 'stock', title: (ss === 'back' ? '【差し戻し】' : '') + K.MONTH + '月の制服・インカム棚卸し', due: K.stockDue, kind: 'stock' });
+    KIND_IDS.forEach((kind) => {
+      const ss = stockState(kind);
+      if (ss === 'todo' || ss === 'back') t.push({ id: kind, title: (ss === 'back' ? '【差し戻し】' : '') + K.MONTH + '月の' + K.KINDS[kind].title, due: K.stockDue, kind: 'stock' });
+    });
     return t.sort((a, b) => (a.due || '').localeCompare(b.due || '', 'ja', { numeric: true }));
   };
   const unread = () => K.notices().filter((n) => !K.isDone(n.id, me().id, 0));
@@ -168,7 +184,7 @@
     if (st.key === 'over' && K.S.settings.target !== 'admin') {
       h += '<div class="alarm" role="alert"><b>' + fmt(dl) + 'を過ぎましたが、出勤の記録がありません</b><span>' + (K.S.settings.target === 'both' ? '管理者にも通知されています。' : '') + '現場にいる場合は「出勤」を押してください。</span></div>';
     }
-    if (K.S.reminded.stock && stockState() === 'todo') h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
+    if (KIND_IDS.some((kk) => K.S.reminded[kk] && stockState(kk) === 'todo')) h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
     const siteText = r.in != null ? (site ? site.name : '判定なし') : (home ? home.name : '出勤時に自動で判定');
     const todo = openTasks();
     h += '<section class="rows">' +
@@ -205,17 +221,17 @@
   }
 
   function todoView() {
-    if (V.sub === 'stock') return stockView();
+    if (V.sub && V.sub.indexOf('stock:') === 0) return stockView(V.sub.slice(6));
     if (V.sub && V.sub.indexOf('task:') === 0) return taskView(V.sub.slice(5));
     const p = me(), open = openTasks();
     let h = header('やること') + '<main class="main page">';
     if (!open.length) h += '<section class="card"><b>すべて提出しました</b><span class="small muted">新しい提出物が届くと、ここに表示します。</span></section>';
-    h += open.map((t) => '<button class="linkcard task" data-open="' + (t.kind === 'stock' ? 'stock' : 'task:' + t.id) + '"><span><b>' + esc(t.title) + '</b><br><span class="small muted">締切 ' + esc(t.due || 'なし') + '</span></span>' + ic('chev', 18) + '</button>').join('');
+    h += open.map((t) => '<button class="linkcard task" data-open="' + (t.kind === 'stock' ? 'stock:' + t.id : 'task:' + t.id) + '"><span><b>' + esc(t.title) + '</b><br><span class="small muted">締切 ' + esc(t.due || 'なし') + '</span></span>' + ic('chev', 18) + '</button>').join('');
     const done = K.tasks().filter((t) => K.isDone(t.id, p.id, 0));
-    const inv = K.invOf(K.CUR_MONTH, p.id);
-    if (done.length || (inv && inv.status !== 'back')) {
+    const invs = KIND_IDS.map((kind) => ({ kind, inv: K.invOf(kind, K.CUR_MONTH, p.id) })).filter((x) => x.inv && x.inv.status !== 'back');
+    if (done.length || invs.length) {
       h += '<div class="section-label">提出済み</div>';
-      if (inv && inv.status !== 'back') h += '<button class="linkcard task" data-open="stock"><span>' + K.MONTH + '月の制服・インカム棚卸し</span><span class="pill ' + K.INV_STATUS[inv.status].pill + '">' + K.INV_STATUS[inv.status].label + '</span></button>';
+      h += invs.map((x) => '<button class="linkcard task" data-open="stock:' + x.kind + '"><span>' + K.MONTH + '月の' + K.KINDS[x.kind].title + '</span><span class="pill ' + K.INV_STATUS[x.inv.status].pill + '">' + K.INV_STATUS[x.inv.status].label + '</span></button>').join('');
       h += done.map((t) => '<section class="card"><div class="row"><span>' + esc(t.title) + '</span><span class="pill ok">提出済み</span></div></section>').join('');
     }
     return h + '</main>';
@@ -229,30 +245,33 @@
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<button class="btn primary block" data-submit="' + esc(t.id) + '" style="min-height:54px">提出する</button></main>';
   }
-  function stockView() {
-    const p = me(), mk = K.CUR_MONTH;
-    if (!K.isTarget(mk, p.id)) return header('棚卸し') + '<main class="main page"><section class="card"><b>今月の棚卸しはありません</b><span class="small muted">対象の月になると、やることに表示します。</span></section></main>';
-    const inv = K.invOf(mk, p.id), locked = inv && inv.status !== 'back', c = K.countsOf(p.id), dr = K.draftOf(p.id);
+  function stockView(kind) {
+    const p = me(), mk = K.CUR_MONTH, def = K.KINDS[kind];
+    if (!K.isTarget(kind, mk, p.id)) return header(def.title) + '<main class="main page"><section class="card"><b>今月の' + def.title + 'はありません</b><span class="small muted">対象の月になると、やることに表示します。</span></section></main>';
+    const inv = K.invOf(kind, mk, p.id), locked = inv && inv.status !== 'back', dr = K.draftOf(kind, p.id);
     const stat = inv ? K.INV_STATUS[inv.status] : { label: '締切 ' + K.stockDue, pill: 'warn' };
-    let h = header('制服・インカム棚卸し') + '<main class="main page">';
-    h += '<section class="card"><div class="row"><b>' + K.MONTH + '月の棚卸し</b><span class="pill ' + stat.pill + '">' + stat.label + '</span></div>';
+    let h = header(def.title) + '<main class="main page">';
+    h += '<section class="card"><div class="row"><b>' + K.MONTH + '月の' + def.title + '</b><span class="pill ' + stat.pill + '">' + stat.label + '</span></div>';
     if (inv && inv.status === 'back') h += '<span class="small" style="color:var(--red-ink)"><b>差し戻しの理由：</b>' + esc(inv.backNote) + '</span>';
-    else if (!locked) h += '<span class="small muted">写真を撮って、手元にある数を入れてください。</span>';
-    h += '</section><div class="section-label">写真</div><section class="slots">' + K.PHOTO_SLOTS.map((sl) => {
-      const id = locked ? inv.photos[sl.k] : dr[sl.k];
-      const inner = id ? '<img alt="' + sl.n + 'の写真" data-photo="' + esc(id) + '" data-key="' + p.id + sl.k + '" data-label="' + sl.n + '">' + (locked ? '' : '<span class="again">撮り直す</span>') : ic('camera', 26) + '<span>撮影する</span>';
-      if (locked) return '<div class="slot"><b>' + sl.n + '</b><div class="shot has">' + inner + '</div></div>';
-      return '<div class="slot"><b>' + sl.n + '</b><label class="shot' + (id ? ' has' : '') + '" for="ph-' + sl.k + '">' + inner + '</label><input class="vh" id="ph-' + sl.k + '" type="file" accept="image/*" capture="environment" data-slot="' + sl.k + '"><small>' + sl.hint + '</small></div>';
+    else if (!locked) h += '<span class="small muted">' + def.hint + '。文字がぼやけたときは撮り直してください。</span>';
+    h += '</section><div class="section-label">写真</div><section class="units">' + def.units.map((u) => {
+      const miss = locked ? (inv.missing || []).includes(u.k) : !!dr.missing[u.k];
+      const id = locked ? (inv.photos || {})[u.k] : dr.photos[u.k];
+      const img = id ? '<img alt="' + u.n + 'の写真" data-photo="' + esc(id) + '" data-key="' + p.id + u.k + '" data-label="' + u.n + '">' : '';
+      if (locked) return '<div class="slot"><b>' + u.n + '</b>' + (miss ? '<div class="shot has"><span>手元にない</span></div>' : '<div class="shot has">' + img + '</div>') + '</div>';
+      const body = miss ? '<div class="shot has"><span>手元にない</span></div>' : '<label class="shot' + (id ? ' has' : '') + '" for="ph-' + u.k + '">' + (id ? img + '<span class="again">撮り直す</span>' : ic('camera', 26) + '<span>撮影する</span><small>' + def.mark + 'を写す</small>') + '</label><input class="vh" id="ph-' + u.k + '" type="file" accept="image/*" capture="environment" data-kind="' + kind + '" data-unit="' + u.k + '">';
+      return '<div class="slot"><div class="row"><b>' + u.n + '</b><label class="nohave"><input type="checkbox" data-nohave="' + u.k + '" data-kind="' + kind + '"' + (miss ? ' checked' : '') + '>手元にない</label></div>' + body + '</div>';
     }).join('') + '</section>';
     if (!locked) h += '<p class="small muted">お客様の情報や人の顔が写らないように撮影してください。</p>';
-    h += '<div class="section-label">数の確認</div><section class="card" style="padding-block:2px">' + K.ITEMS.map((i) => {
-      const miss = locked ? inv.miss.find((m) => m.k === i.k) : null;
-      const val = locked ? (miss ? miss.count : i.lent) : c[i.k];
-      const diff = val - i.lent;
-      return '<div class="step-row"><div><b>' + i.n + '</b><br><span class="small muted">貸与 ' + i.lent + i.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + i.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + i.k + '" data-d="-1" aria-label="' + i.n + 'を減らす"' + (locked ? ' disabled' : '') + '>−</button><span class="num">' + val + '</span><button data-step="' + i.k + '" data-d="1" aria-label="' + i.n + 'を増やす"' + (locked ? ' disabled' : '') + '>＋</button></div></div>';
-    }).join('') + '</section>';
+    if (def.counts.length) {
+      h += '<div class="section-label">付属品の数</div><section class="card" style="padding-block:2px">' + def.counts.map((c) => {
+        const val = locked ? ((inv.counts || {})[c.k] !== undefined ? inv.counts[c.k] : c.lent) : dr.counts[c.k];
+        const diff = val - c.lent;
+        return '<div class="step-row"><div><b>' + c.n + '</b><br><span class="small muted">貸与 ' + c.lent + c.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + c.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + c.k + '" data-kind="' + kind + '" data-d="-1" aria-label="' + c.n + 'を減らす"' + (locked ? ' disabled' : '') + '>−</button><span class="num">' + val + '</span><button data-step="' + c.k + '" data-kind="' + kind + '" data-d="1" aria-label="' + c.n + 'を増やす"' + (locked ? ' disabled' : '') + '>＋</button></div></div>';
+      }).join('') + '</section>';
+    }
     if (V.err) h += '<div class="err">' + esc(V.err) + '</div>';
-    if (!locked) h += '<button class="btn primary block" id="submitStock" style="min-height:54px">' + (inv ? '再提出する' : 'この内容で提出する') + '</button>';
+    if (!locked) h += '<button class="btn primary block" data-submitstock="' + kind + '" style="min-height:54px">' + (inv ? '再提出する' : 'この内容で提出する') + '</button>';
     return h + '</main>';
   }
 
@@ -289,8 +308,8 @@
       '<div class="field"><label for="homeSel">このスタッフの登録店舗</label><select id="homeSel"><option value="">なし（移動型）</option>' + K.stores().filter((s) => s.area === me().area || !s.sample).map((s) => { const h = K.homeStore(me()); return '<option value="' + esc(s.id) + '"' + (h && h.id === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>' +
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
-      '<button class="btn" data-reset="1">最初の状態に戻す</button>' +
-      '<p class="proto">試作版 6 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<button class="btn" id="logout">ログアウト</button><button class="btn" data-reset="1">最初の状態に戻す</button>' +
+      '<p class="proto">試作版 7 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
   }
   function gpsSheet() {
@@ -301,7 +320,75 @@
     return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="修正の依頼"><h2>' + d + '日の修正を依頼</h2><div class="field"><label for="fixKind">内容</label><select id="fixKind"><option>出勤の打刻忘れ</option><option>退勤の打刻忘れ</option><option>時刻の間違い</option></select></div><div class="field"><label for="fixDetail">正しい時刻やメモ</label><input id="fixDetail" placeholder="例: 19:05 に退勤しました"></div>' + (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') + '<button class="btn primary" id="sendFix" style="min-height:50px">依頼を送る</button></div>';
   }
 
+  /* ログイン。試作のためパスコードは画面に出す。本番はサーバーからメールで送り、判定もサーバーで行う */
+  const CODES = { AUC00001: 'me1', AUC00002: 'me2' };
+  V.a = { mode: 'login', code: '', email: '', err: '', info: '' };
+  const normCode = (v) => String(v || '').normalize('NFKC').trim().toUpperCase();
+  async function sha(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, '0')).join('');
+  }
+  function loginView() {
+    const a = V.a, err = a.err ? '<div class="err" role="alert">' + esc(a.err) + '</div>' : '', info = a.info ? '<p class="small muted">' + esc(a.info) + '</p>' : '';
+    const codeField = '<div class="field"><label for="aCode">aucコード（スタッフコード）</label><input id="aCode" autocomplete="username" autocapitalize="characters" value="' + esc(a.code) + '" placeholder="例: AUC00001"></div>';
+    const back = '<div class="links"><button class="link" type="button" data-amode="login">ログインに戻る</button></div>';
+    let body = '';
+    if (a.mode === 'login') {
+      body = '<h1>ログイン</h1>' + codeField + '<div class="field"><label for="aPass">パスワード</label><input id="aPass" type="password" autocomplete="current-password"></div>' + err + info + '<button class="btn primary" id="aLogin" type="submit" style="min-height:52px">ログイン</button><div class="links"><button class="link" type="button" data-amode="first">初めての方</button><button class="link" type="button" data-amode="forgot">パスワードを忘れた方</button></div><p class="demo">試作用のコードは AUC00001（常勤）と AUC00002（移動型）です。本物のパスワードは入れないでください。</p>';
+    } else if (a.mode === 'first' || a.mode === 'forgot') {
+      body = '<h1>' + (a.mode === 'first' ? '初回の登録' : 'パスワードの再設定') + '</h1><p class="small muted">' + (a.mode === 'first' ? '連絡先のメールアドレスに、確認用のパスコードを送ります。' : '登録したメールアドレスに、確認用のパスコードを送ります。') + '</p>' + codeField + '<div class="field"><label for="aEmail">メールアドレス</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" value="' + esc(a.email) + '"></div>' + err + '<button class="btn primary" id="aSend" type="submit" style="min-height:52px">パスコードを送る</button>' + back;
+    } else if (a.mode === 'code') {
+      body = '<h1>パスコードの入力</h1><p class="small muted">' + esc(a.email) + ' に送ったパスコードを入れてください。有効時間は10分です。</p><p class="demo">試作のためメールは送りません。パスコード：<b class="num">' + esc(a.sent) + '</b></p><div class="field"><label for="aPc">パスコード（6桁）</label><input id="aPc" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>' + err + '<button class="btn primary" id="aCheck" type="submit" style="min-height:52px">確認する</button>' + back;
+    } else {
+      body = '<h1>パスワードの設定</h1><div class="field"><label for="aNew">新しいパスワード（8文字以上）</label><input id="aNew" type="password" autocomplete="new-password"></div><div class="field"><label for="aNew2">もう一度入力</label><input id="aNew2" type="password" autocomplete="new-password"></div>' + err + '<button class="btn primary" id="aSave" type="submit" style="min-height:52px">設定してログイン</button>';
+    }
+    return '<div class="auth"><header class="top"><div class="bar"><span class="brand">キョウモ</span></div></header><form id="authForm" novalidate>' + body + '</form></div>';
+  }
+  async function authSubmit() {
+    const a = V.a, A = K.S.auth;
+    a.err = ''; a.info = '';
+    if (a.mode === 'login') {
+      const code = normCode($('aCode').value), pass = $('aPass').value;
+      a.code = code;
+      if ((A.fails[code] || 0) >= 5) { a.err = '5回間違えたためロックしました。パスワードを再設定してください。'; render(); return; }
+      const acc = A.accounts[code];
+      if (acc && acc.hash === await sha(code + ':' + pass)) {
+        delete A.fails[code]; K.S.session = CODES[code]; K.S.persona = CODES[code]; K.save(); V.a = { mode: 'login', code: '', email: '', err: '', info: '' }; V.tab = 'home'; render(); return;
+      }
+      if (CODES[code]) { A.fails[code] = (A.fails[code] || 0) + 1; K.save(); }
+      a.err = 'コードかパスワードが違います。'; render(); return;
+    }
+    if (a.mode === 'first' || a.mode === 'forgot') {
+      const code = normCode($('aCode').value), email = $('aEmail').value.trim();
+      a.code = code; a.email = email;
+      if (!code) { a.err = 'aucコードを入れてください。'; render(); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { a.err = 'メールアドレスの形が正しくありません。'; render(); return; }
+      if (a.mode === 'first' && A.accounts[code]) { a.err = 'このコードは登録済みです。「パスワードを忘れた方」から再設定してください。'; a.mode = 'login'; render(); return; }
+      const ok = a.mode === 'first' ? !!CODES[code] : (A.accounts[code] && A.accounts[code].email.toLowerCase() === email.toLowerCase());
+      if (!ok) { a.mode = 'login'; a.info = '登録内容と一致する場合は、パスコードを送りました。届かないときは管理者に連絡してください。'; render(); return; }
+      a.purpose = a.mode; a.sent = String(Math.floor(100000 + Math.random() * 900000)); a.exp = Date.now() + 600000; a.tries = 0; a.mode = 'code'; render(); return;
+    }
+    if (a.mode === 'code') {
+      const v = $('aPc').value.trim();
+      if (Date.now() > a.exp) { a.err = '有効時間を過ぎました。もう一度送ってください。'; a.mode = a.purpose; render(); return; }
+      if (v !== a.sent) {
+        a.tries++;
+        if (a.tries >= 5) { a.err = '5回間違えました。もう一度送ってください。'; a.mode = a.purpose; render(); return; }
+        a.err = 'パスコードが違います。'; render(); return;
+      }
+      a.mode = 'new'; render(); return;
+    }
+    const p1 = $('aNew').value, p2 = $('aNew2').value;
+    if (p1.length < 8) { a.err = 'パスワードは8文字以上にしてください。'; render(); return; }
+    if (p1 !== p2) { a.err = '2つのパスワードが違います。'; render(); return; }
+    A.accounts[a.code] = { hash: await sha(a.code + ':' + p1), email: a.email };
+    delete A.fails[a.code];
+    K.S.session = CODES[a.code]; K.S.persona = CODES[a.code]; K.save();
+    V.a = { mode: 'login', code: '', email: '', err: '', info: '' }; V.tab = 'home'; render(); snack('パスワードを設定しました');
+  }
+
   function render() {
+    if (!K.S.session) { $('app').innerHTML = loginView(); $('overlay').innerHTML = ''; return; }
     const views = { home: homeView, hist: histView, todo: todoView, news: newsView, help: helpView };
     $('app').innerHTML = views[V.tab]() + tabs();
     K.hydratePhotos($('app'));
@@ -393,7 +480,13 @@
       '<button class="btn" data-pickcancel="1">やめる</button></div>';
   }
 
+  document.addEventListener('submit', (e) => {
+    if (e.target.id === 'authForm') { e.preventDefault(); authSubmit(); }
+  });
   document.addEventListener('click', (e) => {
+    const am = e.target.closest('[data-amode]');
+    if (am) { V.a.mode = am.dataset.amode; V.a.err = ''; V.a.info = ''; render(); return; }
+    if (e.target.closest('#logout')) { K.S.session = null; K.save(); V.sheet = null; V.tab = 'home'; V.sub = null; render(); return; }
     const b = e.target.closest('button, [data-close], [data-pickcancel]');
     if (!b) return;
     const d = b.dataset;
@@ -417,7 +510,7 @@
       if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump);
       V.lastOver = K.status(me()).key === 'over'; V.sheet = null; checkOverdue(true); render(); return;
     }
-    if (d.persona) { K.S.persona = d.persona; K.save(); V.sheet = 'demo'; render(); return; }
+    if (d.persona) { K.S.persona = d.persona; K.S.session = d.persona; K.save(); V.sheet = 'demo'; render(); return; }
     if (d.gps) { K.S.gps = d.gps; K.save(); renderOverlay(); return; }
     if (d.reset) { K.reset(); V.sheet = null; V.tab = 'home'; V.sub = null; V.snack = null; V.banner = null; render(); snack('最初の状態に戻しました'); return; }
     if (b.id === 'punchIn') { punch('in'); return; }
@@ -454,16 +547,16 @@
       V.sub = null; V.err = ''; render(); snack('提出しました'); return;
     }
     if (d.step) {
-      const c = K.countsOf(me().id);
+      const c = K.draftOf(d.kind, me().id).counts;
       c[d.step] = Math.max(0, Math.min(9, c[d.step] + (+d.d))); K.save(); render(); return;
     }
-    if (b.id === 'submitStock') {
-      const p = me(), dr = K.draftOf(p.id), lack = K.PHOTO_SLOTS.filter((s) => !dr[s.k]);
-      if (lack.length) { V.err = lack.map((s) => s.n).join('と') + 'の写真を撮影してください。'; render(); return; }
-      const c = K.countsOf(p.id);
-      K.setInv(K.CUR_MONTH, p.id, { date: K.md(0), status: 'wait', backNote: '', photos: Object.assign({}, dr), miss: K.ITEMS.filter((i) => c[i.k] !== i.lent).map((i) => ({ k: i.k, count: c[i.k] })) });
-      K.S.invDraft[p.id] = {}; K.save();
-      V.sub = null; V.err = ''; render(); snack('棚卸しを提出しました'); return;
+    if (d.submitstock) {
+      const kind = d.submitstock, def = K.KINDS[kind], p = me(), dr = K.draftOf(kind, p.id);
+      const lack = def.units.filter((u) => !dr.photos[u.k] && !dr.missing[u.k]);
+      if (lack.length) { V.err = lack.map((u) => u.n).join('、') + ' の写真を撮影するか、「手元にない」を選んでください。'; render(); return; }
+      K.setInv(kind, K.CUR_MONTH, p.id, { date: K.md(0), status: 'wait', backNote: '', photos: Object.assign({}, dr.photos), missing: Object.keys(dr.missing).filter((k) => dr.missing[k]), counts: Object.assign({}, dr.counts) });
+      delete K.S.invDraft[kind + ':' + p.id]; K.save();
+      V.sub = null; V.err = ''; render(); snack(def.title + 'を提出しました'); return;
     }
     if (d.read) { K.setDone(d.read, me().id); render(); return; }
   });
@@ -472,15 +565,22 @@
     if (t.id === 'homeSel') {
       K.S.homeOver[me().id] = t.value || null; K.save(); render(); return;
     }
-    if (t.dataset && t.dataset.slot) {
+    if (t.dataset && t.dataset.nohave) {
+      const dr = K.draftOf(t.dataset.kind, me().id);
+      dr.missing[t.dataset.nohave] = t.checked;
+      if (t.checked) delete dr.photos[t.dataset.nohave];
+      K.save(); V.err = ''; render(); return;
+    }
+    if (t.dataset && t.dataset.unit) {
       const f = t.files && t.files[0];
       if (!f) return;
       V.err = '';
       try {
-        const url = await K.shrinkImage(f, 1280, 0.72);
-        const id = 'ph-' + me().id + '-' + t.dataset.slot + '-' + Date.now();
+        /* バーコードや番号が読めるよう、解像度を高めに残す */
+        const url = await K.shrinkImage(f, 1600, 0.82);
+        const id = 'ph-' + me().id + '-' + t.dataset.unit + '-' + Date.now();
         await K.photoPut(id, url);
-        K.draftOf(me().id)[t.dataset.slot] = id; K.save();
+        K.draftOf(t.dataset.kind, me().id).photos[t.dataset.unit] = id; K.save();
       } catch (err) { V.err = '写真を読み込めませんでした。もう一度撮影してください。'; }
       render();
     }
@@ -507,10 +607,11 @@
     if (m !== lastMin) {
       lastMin = m;
       checkOverdue();
+      if (!K.S.session) return;
       if (!activeIsForm() && !V.sheet && !V.busy) render(); else renderOverlay();
     }
   }, 1000);
-  K.onChange(() => { if (!activeIsForm()) render(); });
+  K.onChange(() => { if (K.S.session && !activeIsForm()) render(); });
   V.lastOver = false;
   render();
 })();

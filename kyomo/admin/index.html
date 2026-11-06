@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="../assets/base.css?v=6">
+<link rel="stylesheet" href="../assets/base.css?v=7">
 <style>
 /* 管理者は「今日いま対応が要る人」から順に見る。PCは左メニュー、スマホは上タブ。 */
 .shell { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100dvh; align-content: start; }
@@ -111,6 +111,14 @@ tr.hot td { background: var(--red-soft); }
   .shift .nm { box-shadow: 1px 0 0 var(--line); line-height: 1.3; max-width: 118px; white-space: normal; }
   .shift .nm small { display: block; }
 }
+.kind-seg { background: var(--surface); max-width: 420px; }
+.kind-seg button { font-size: 14px; }
+.zoom-btn { display: block; width: 100%; padding: 0; cursor: zoom-in; }
+.nophoto { aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--line); color: var(--red-ink); font-weight: 700; background: var(--red-soft); }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) 8px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+.lightbox .btn { align-self: flex-end; flex: none; background: #FFFFFF; color: #17233A; }
+.lb-scroll { flex: 1; min-height: 0; overflow: auto; display: flex; align-items: center; justify-content: center; touch-action: pinch-zoom pan-x pan-y; }
+.lb-scroll img { max-width: 100%; max-height: 100%; }
 </style>
 </head>
 <body>
@@ -122,14 +130,14 @@ tr.hot td { background: var(--red-soft); }
 <div id="toast" role="status" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="../assets/core.js?v=6"></script>
+<script src="../assets/core.js?v=7"></script>
 <script>
 (function () {
   'use strict';
   const K = window.Kyomo, esc = K.esc, fmt = K.fmt, ic = K.icon;
   const V = {
     page: 'today', f: { today: { area: 'all', pref: 'all' }, shift: { area: 'chugoku', pref: 'all' }, stores: { area: 'all', pref: 'all' }, stock: { area: 'all', pref: 'all' } },
-    q: '', st: 'all', limit: 30, storeQ: '', storeLimit: 30, stockMonth: K.CUR_MONTH, stockStatus: 'all', stockEdit: false, stockLimit: 30,
+    q: '', st: 'all', limit: 30, storeQ: '', storeLimit: 30, stockKind: 'uniform', stockMonth: K.CUR_MONTH, stockStatus: 'all', stockEdit: false, stockLimit: 30,
     open: {}, draft: { type: 'task', title: '', due: '', body: '', err: '' }, sheet: null, person: null, form: null, backing: false, bulk: null, bulkRun: 0
   };
   const $ = (id) => document.getElementById(id);
@@ -146,7 +154,7 @@ tr.hot td { background: var(--red-soft); }
 
   function renderSide() {
     const mk = K.CUR_MONTH;
-    const wait = P.filter((p) => K.isTarget(mk, p.id) && (K.invOf(mk, p.id) || {}).status === 'wait').length;
+    const wait = ['uniform', 'incam'].reduce((n, kind) => n + P.filter((p) => K.isTarget(kind, mk, p.id) && (K.invOf(kind, mk, p.id) || {}).status === 'wait').length, 0);
     const nav = [['today', '今日の出勤', 'clock', pending().length + openFixes().length], ['shift', 'シフト', 'grid', 0], ['stores', '店舗', 'store', 0], ['stock', '棚卸し', 'box', wait], ['tasks', '提出物・お知らせ', 'list', 0], ['set', '設定', 'sliders', 0]];
     $('side').innerHTML = '<span class="brand">キョウモ</span><span class="role">管理者 ／ ' + esc(K.S.settings.company) + '</span><div class="navs">' +
       nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[2], 20) + n[1] + (n[3] ? '<span class="n num">' + n[3] + '</span>' : '') + '</button>').join('') +
@@ -369,58 +377,66 @@ tr.hot td { background: var(--red-soft); }
   }
 
   function stockPage() {
-    const f = V.f.stock, mk = V.stockMonth, cur = mk === K.CUR_MONTH;
+    const f = V.f.stock, mk = V.stockMonth, cur = mk === K.CUR_MONTH, kind = V.stockKind, def = K.KINDS[kind];
     const inScope = P.filter((p) => inFilter(p, f));
-    const target = inScope.filter((p) => K.isTarget(mk, p.id));
-    const rows = target.map((p) => ({ p, inv: K.invOf(mk, p.id) }));
+    const target = inScope.filter((p) => K.isTarget(kind, mk, p.id));
+    const rows = target.map((p) => ({ p, inv: K.invOf(kind, mk, p.id) }));
     const cnt = (s) => rows.filter((x) => x.inv && x.inv.status === s).length;
-    const none = rows.filter((x) => !x.inv), diff = rows.filter((x) => x.inv && x.inv.miss.length);
+    const none = rows.filter((x) => !x.inv), diff = rows.filter((x) => K.invDiffs(kind, x.inv).length);
     let h = '<div class="head"><h1>棚卸し</h1><span class="meta">' + K.monthLabel(mk) + '分' + (cur ? ' ／ 締切 ' + K.stockDue : '') + '</span></div>';
+    h += '<div class="seg kind-seg" role="group" aria-label="棚卸しの種類">' + Object.values(K.KINDS).map((x) => '<button data-kind="' + x.id + '" aria-pressed="' + (kind === x.id) + '">' + x.title + '</button>').join('') + '</div>';
     h += '<div class="chips" role="group" aria-label="月">' + [0, 1, 2].map((b) => { const m = K.monthKey(b); return '<button class="chip" data-month="' + m + '" aria-pressed="' + (mk === m) + '">' + K.monthLabel(m) + '</button>'; }).join('') + '</div>';
     h += regionFilter('stock', true, '<select id="stockStatus" aria-label="状況で絞り込む">' + [['all', 'すべての状況'], ['wait', '確認待ち'], ['none', '未提出'], ['back', '差し戻し'], ['ok', '確認済み'], ['diff', '貸与数と差異あり']].map((o) => '<option value="' + o[0] + '"' + (V.stockStatus === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>');
     h += '<div class="stats"><div class="stat"><small>対象</small><b class="num">' + target.length + '</b><em>人</em></div><div class="stat' + (cnt('wait') ? ' warn' : '') + '"><small>確認待ち</small><b class="num">' + cnt('wait') + '</b><em>人</em></div><div class="stat"><small>確認済み</small><b class="num">' + cnt('ok') + '</b><em>人</em></div><div class="stat"><small>差し戻し</small><b class="num">' + cnt('back') + '</b><em>人</em></div><div class="stat"><small>未提出</small><b class="num">' + none.length + '</b><em>人</em></div><div class="stat' + (diff.length ? ' bad' : '') + '"><small>差異あり</small><b class="num">' + diff.length + '</b><em>人</em></div></div>';
-    h += '<div class="sel-row"><button class="btn" id="stockEdit">' + (V.stockEdit ? '対象者の変更を終わる' : '今月の対象者を変更') + '</button>' + (cur && !V.stockEdit && !K.S.reminded.stock ? '<button class="btn" id="remindAll">未提出の人に催促する</button>' : '') + (K.S.reminded.stock && cur ? '<span class="pill idle">催促済み</span>' : '') + '</div>';
+    const reminded = K.S.reminded[kind];
+    h += '<div class="sel-row"><button class="btn" id="stockEdit">' + (V.stockEdit ? '対象者の変更を終わる' : K.monthLabel(mk) + 'の対象者を変更') + '</button>' + (cur && !V.stockEdit && !reminded ? '<button class="btn" id="remindAll">未提出の人に催促する</button>' : '') + (reminded && cur ? '<span class="pill idle">催促済み</span>' : '') + '</div>';
     if (V.stockEdit) {
       const list = inScope.slice(0, V.stockLimit);
-      h += '<section class="block"><div class="row"><h2>' + K.monthLabel(mk) + 'の対象者（絞り込み中 ' + inScope.length + '人）</h2><div class="sel-row"><button class="btn mini-btn" data-allt="1">全員を対象にする</button><button class="btn mini-btn" data-allt="0">全員を対象から外す</button></div></div><div class="tablebox"><table><thead><tr><th>対象</th><th>スタッフ</th><th>県</th><th>登録店舗</th></tr></thead><tbody>' + list.map((p) => '<tr><td><label class="check"><input type="checkbox" data-tg="' + p.id + '"' + (K.isTarget(mk, p.id) ? ' checked' : '') + ' aria-label="' + esc(p.name) + 'を対象にする"></label></td><td><b>' + esc(p.name) + '</b></td><td>' + esc(prefOf(p)) + '</td><td>' + esc(homeName(p)) + '</td></tr>').join('') + '</tbody></table></div>' + (inScope.length > V.stockLimit ? '<button class="btn" data-stockmore="1">さらに表示</button>' : '') + '</section>';
+      h += '<section class="block"><div class="row"><h2>' + K.monthLabel(mk) + 'の' + def.title + 'の対象者（絞り込み中 ' + inScope.length + '人）</h2><div class="sel-row"><button class="btn mini-btn" data-allt="1">全員を対象にする</button><button class="btn mini-btn" data-allt="0">全員を対象から外す</button></div></div><div class="tablebox"><table><thead><tr><th>対象</th><th>スタッフ</th><th>県</th><th>登録店舗</th></tr></thead><tbody>' + list.map((p) => '<tr><td><label class="check"><input type="checkbox" data-tg="' + p.id + '"' + (K.isTarget(kind, mk, p.id) ? ' checked' : '') + ' aria-label="' + esc(p.name) + 'を対象にする"></label></td><td><b>' + esc(p.name) + '</b></td><td>' + esc(prefOf(p)) + '</td><td>' + esc(homeName(p)) + '</td></tr>').join('') + '</tbody></table></div>' + (inScope.length > V.stockLimit ? '<button class="btn" data-stockmore="1">さらに表示</button>' : '') + '</section>';
       return h;
     }
     const order = { wait: 0, back: 1, none: 2, ok: 3 };
-    const filteredRows = rows.filter((x) => { const s = x.inv ? x.inv.status : 'none'; if (V.stockStatus === 'all') return true; if (V.stockStatus === 'diff') return x.inv && x.inv.miss.length; return s === V.stockStatus; }).sort((a, b) => order[a.inv ? a.inv.status : 'none'] - order[b.inv ? b.inv.status : 'none']);
+    const filteredRows = rows.filter((x) => { const s = x.inv ? x.inv.status : 'none'; if (V.stockStatus === 'all') return true; if (V.stockStatus === 'diff') return K.invDiffs(kind, x.inv).length; return s === V.stockStatus; }).sort((a, b) => order[a.inv ? a.inv.status : 'none'] - order[b.inv ? b.inv.status : 'none']);
     const show = filteredRows.slice(0, V.stockLimit);
-    h += '<div class="tablebox"><table><thead><tr><th>スタッフ</th><th>県</th><th>登録店舗</th><th>状況</th><th>提出日</th><th>写真</th><th>貸与数との差異</th><th></th></tr></thead><tbody>' + (show.map((x) => {
+    h += '<div class="tablebox"><table><thead><tr><th>スタッフ</th><th>県</th><th>登録店舗</th><th>状況</th><th>提出日</th><th>写真</th><th>差異</th><th></th></tr></thead><tbody>' + (show.map((x) => {
       const s = x.inv ? K.INV_STATUS[x.inv.status] : { label: '未提出', pill: 'idle' };
-      const thumbs = x.inv ? '<div class="thumbs">' + K.PHOTO_SLOTS.map((sl) => '<img alt="' + sl.n + '" data-photo="' + esc(x.inv.photos[sl.k] || 'sample') + '" data-key="' + x.p.id + sl.k + '" data-label="' + sl.n + '">').join('') + '</div>' : '—';
-      return '<tr><td><b>' + esc(x.p.name) + '</b></td><td>' + esc(prefOf(x.p)) + '</td><td>' + esc(homeName(x.p)) + '</td><td><span class="pill ' + s.pill + '">' + s.label + '</span></td><td class="num">' + (x.inv ? esc(x.inv.date) : '—') + '</td><td>' + thumbs + '</td><td>' + (x.inv && x.inv.miss.length ? '<span class="pill bad">あり</span>' : (x.inv ? 'なし' : '—')) + '</td><td><button class="btn mini-btn" data-person="' + x.p.id + '">開く</button></td></tr>';
+      const thumbs = x.inv ? '<div class="thumbs">' + def.units.filter((u) => (x.inv.photos || {})[u.k]).map((u) => '<img alt="' + u.n + '" data-photo="' + esc(x.inv.photos[u.k]) + '" data-key="' + x.p.id + u.k + '" data-label="' + u.n + '">').join('') + '</div>' : '—';
+      const dfs = K.invDiffs(kind, x.inv);
+      return '<tr><td><b>' + esc(x.p.name) + '</b></td><td>' + esc(prefOf(x.p)) + '</td><td>' + esc(homeName(x.p)) + '</td><td><span class="pill ' + s.pill + '">' + s.label + '</span></td><td class="num">' + (x.inv ? esc(x.inv.date) : '—') + '</td><td>' + thumbs + '</td><td>' + (dfs.length ? '<span class="pill bad">あり</span>' : (x.inv ? 'なし' : '—')) + '</td><td><button class="btn mini-btn" data-person="' + x.p.id + '">開く</button></td></tr>';
     }).join('') || '<tr><td colspan="8" class="muted">条件に合う人はいません。</td></tr>') + '</tbody></table></div><div class="row"><span class="note num">' + filteredRows.length + '人中 ' + show.length + '人を表示</span>' + (filteredRows.length > V.stockLimit ? '<button class="btn" data-stockmore="1">さらに30人表示</button>' : '') + '</div>';
     return h;
   }
 
-  function personLink(mk, pid) { return location.origin + location.pathname + '#stock/' + mk + '/' + pid; }
-  function teamsCard(mk, p, inv) {
-    const miss = inv && inv.miss.length;
-    return '<div class="teams-card"><span class="ch">Teams チャネル「' + esc(K.S.settings.teams.channel) + '」に届く内容（見本）</span><b>' + (miss ? '【差異あり】' : '') + esc(p.name) + 'さんが' + K.monthLabel(mk) + 'の棚卸しを提出しました</b><span class="small">' + esc(prefOf(p)) + ' ／ ' + esc(homeName(p)) + (miss ? ' ／ 貸与数と違う品目があります' : '') + '</span><a class="open" href="' + esc(personLink(mk, p.id)) + '">写真を確認する</a></div>';
+  function personLink(kind, mk, pid) { return location.origin + location.pathname + '#stock/' + kind + '/' + mk + '/' + pid; }
+  function teamsCard(kind, mk, p, inv) {
+    const def = K.KINDS[kind], miss = K.invDiffs(kind, inv).length;
+    return '<div class="teams-card"><span class="ch">Teams チャネル「' + esc(K.S.settings.teams.channel) + '」に届く内容（見本）</span><b>' + (miss ? '【差異あり】' : '') + esc(p.name) + 'さんが' + K.monthLabel(mk) + 'の' + def.title + 'を提出しました</b><span class="small">' + esc(prefOf(p)) + ' ／ ' + esc(homeName(p)) + (miss ? ' ／ 貸与数と違う品目があります' : '') + '</span><a class="open" href="' + esc(personLink(kind, mk, p.id)) + '">写真を確認する</a></div>';
   }
   function personSheet() {
-    const { mk, pid } = V.person, p = K.byId[pid], inv = K.invOf(mk, pid), target = K.isTarget(mk, pid);
+    const { kind, mk, pid } = V.person, def = K.KINDS[kind], p = K.byId[pid], inv = K.invOf(kind, mk, pid), target = K.isTarget(kind, mk, pid);
     const s = inv ? K.INV_STATUS[inv.status] : { label: target ? '未提出' : '対象外', pill: 'idle' };
-    let h = '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="棚卸しの確認"><div class="row"><h2>' + esc(p.name) + 'さん</h2><span class="pill ' + s.pill + '">' + s.label + '</span></div><p class="note">' + esc(prefOf(p)) + ' ／ ' + esc(homeName(p)) + ' ／ ' + K.monthLabel(mk) + '分' + (inv ? ' ／ 提出 ' + esc(inv.date) : '') + '</p>';
-    h += '<div class="hist-chips" aria-label="月を切り替える">' + [0, 1, 2].map((b) => { const m = K.monthKey(b), t = K.isTarget(m, pid), i = K.invOf(m, pid); return '<button class="chip" data-pmonth="' + m + '" aria-pressed="' + (m === mk) + '">' + K.monthLabel(m) + '：' + (!t ? '対象外' : i ? K.INV_STATUS[i.status].label : '未提出') + '</button>'; }).join('') + '</div>';
+    let h = '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="棚卸しの確認"><div class="row"><h2>' + esc(p.name) + 'さん</h2><span class="pill ' + s.pill + '">' + s.label + '</span></div><p class="note">' + def.title + ' ／ ' + esc(prefOf(p)) + ' ／ ' + esc(homeName(p)) + ' ／ ' + K.monthLabel(mk) + '分' + (inv ? ' ／ 提出 ' + esc(inv.date) : '') + '</p>';
+    h += '<div class="seg" role="group" aria-label="種類を切り替える">' + Object.values(K.KINDS).map((x) => '<button data-pkind="' + x.id + '" aria-pressed="' + (x.id === kind) + '">' + x.title + '</button>').join('') + '</div>';
+    h += '<div class="hist-chips" aria-label="月を切り替える">' + [0, 1, 2].map((b) => { const m = K.monthKey(b), t = K.isTarget(kind, m, pid), i = K.invOf(kind, m, pid); return '<button class="chip" data-pmonth="' + m + '" aria-pressed="' + (m === mk) + '">' + K.monthLabel(m) + '：' + (!t ? '対象外' : i ? K.INV_STATUS[i.status].label : '未提出') + '</button>'; }).join('') + '</div>';
     if (inv) {
-      h += '<div class="photos">' + K.PHOTO_SLOTS.map((sl) => '<figure><img alt="' + sl.n + 'の写真" data-photo="' + esc(inv.photos[sl.k] || 'sample') + '" data-key="' + pid + sl.k + mk + '" data-label="' + sl.n + '"><figcaption>' + sl.n + '</figcaption></figure>').join('') + '</div>';
-      const missMap = Object.fromEntries(inv.miss.map((m) => [m.k, m.count]));
-      h += '<div class="tablebox"><table><thead><tr><th>品目</th><th>貸与</th><th>申告</th></tr></thead><tbody>' + K.ITEMS.map((i) => { const c = missMap[i.k] !== undefined ? missMap[i.k] : i.lent; return '<tr><td>' + i.n + '</td><td class="num">' + i.lent + i.u + '</td><td class="num">' + (c !== i.lent ? '<span class="pill bad">' + c + i.u + '</span>' : c + i.u) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      h += '<p class="note">' + def.mark + 'が読めるか確認してください。写真を押すと大きく表示します。</p><div class="photos">' + def.units.map((u) => {
+        const id = (inv.photos || {})[u.k], miss = (inv.missing || []).includes(u.k);
+        return '<figure>' + (miss ? '<div class="nophoto">手元にない</div>' : '<button class="zoom-btn" data-zoom="1" aria-label="' + u.n + 'の写真を拡大"><img alt="' + u.n + 'の写真" data-photo="' + esc(id || 'sample') + '" data-key="' + pid + u.k + mk + '" data-label="' + u.n + '"></button>') + '<figcaption>' + u.n + '</figcaption></figure>';
+      }).join('') + '</div>';
+      if (def.counts.length) h += '<div class="tablebox"><table><thead><tr><th>付属品</th><th>貸与</th><th>申告</th></tr></thead><tbody>' + def.counts.map((c) => { const v = (inv.counts || {})[c.k] !== undefined ? inv.counts[c.k] : c.lent; return '<tr><td>' + c.n + '</td><td class="num">' + c.lent + c.u + '</td><td class="num">' + (v !== c.lent ? '<span class="pill bad">' + v + c.u + '</span>' : v + c.u) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      const dfs = K.invDiffs(kind, inv);
+      if (dfs.length) h += '<p class="small" style="color:var(--red-ink)"><b>差異：</b>' + esc(dfs.join('、')) + '</p>';
       if (inv.status === 'back' && inv.backNote) h += '<p class="small"><b>差し戻しの理由：</b>' + esc(inv.backNote) + '</p>';
       if (V.backing) {
-        h += '<div class="field"><label for="backNote">差し戻しの理由</label><textarea id="backNote" placeholder="例: インカムの充電器が写っていません"></textarea></div><div id="backErr" class="err" hidden></div><div class="sel-row"><button class="btn primary" id="sendBack">差し戻す</button><button class="btn" id="cancelBack">やめる</button></div>';
+        h += '<div class="field"><label for="backNote">差し戻しの理由</label><textarea id="backNote" placeholder="例: ' + def.mark + 'が読めません"></textarea></div><div id="backErr" class="err" hidden></div><div class="sel-row"><button class="btn primary" id="sendBack">差し戻す</button><button class="btn" id="cancelBack">やめる</button></div>';
       } else if (inv.status === 'wait') {
         h += '<div class="sel-row"><button class="btn primary" id="invOk">' + ic('check', 18) + '確認済みにする</button><button class="btn" id="invBack">差し戻す</button></div>';
       } else if (inv.status === 'ok') {
         h += '<div><button class="btn" id="invBack">差し戻す</button></div>';
       }
-      h += teamsCard(mk, p, inv);
+      h += teamsCard(kind, mk, p, inv);
     } else {
-      h += '<p class="note">' + (target ? 'まだ提出されていません。' : 'この月は棚卸しの対象外です。') + '</p>';
+      h += '<p class="note">' + (target ? 'まだ提出されていません。' : 'この月は' + def.title + 'の対象外です。') + '</p>';
     }
     return h + '<button class="btn" data-close="1">閉じる</button></div>';
   }
@@ -443,12 +459,12 @@ tr.hot td { background: var(--red-soft); }
     const sampleP = P[5];
     return '<div class="head"><h1>設定</h1></div><section class="block"><h2>会社</h2><div class="field"><label for="setCompany">会社名</label><input id="setCompany" value="' + esc(t.company) + '"></div></section>' +
       '<section class="block"><h2>出勤の確認</h2><div class="two"><div class="field"><label for="setDl">判定時刻</label><input id="setDl" type="time" value="' + fmt(t.deadline) + '"></div><div class="field"><label for="setTarget">アラートの送り先</label><select id="setTarget">' + [['both', '本人と管理者'], ['admin', '管理者のみ'], ['staff', '本人のみ']].map((o) => '<option value="' + o[0] + '"' + (t.target === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div class="field"><label for="setRadius">店舗とみなす範囲</label><select id="setRadius">' + [100, 200, 300, 500].map((v) => '<option value="' + v + '"' + (t.radius === v ? ' selected' : '') + '>' + v + 'm以内</option>').join('') + '</select></div></div><p class="note">シフトがある人のうち、判定時刻までに出勤の記録がない人をアラートの対象にします。休みと在宅の人は対象外です。</p></section>' +
-      '<section class="block"><h2>Microsoft Teams連携</h2><p class="note">この試作では見た目の確認だけで、Teamsにはまだ送信しません。</p><div class="field"><label for="setCh">送信先のチャネル名</label><input id="setCh" value="' + esc(tm.channel) + '"></div><label class="check"><input type="checkbox" data-tm="stock"' + (tm.stock ? ' checked' : '') + '>棚卸しの提出を知らせる</label><label class="check"><input type="checkbox" data-tm="diff"' + (tm.diff ? ' checked' : '') + '>貸与数との差異を目立たせる</label><label class="check"><input type="checkbox" data-tm="alert"' + (tm.alert ? ' checked' : '') + '>未出勤アラートを知らせる</label>' + teamsCard(K.CUR_MONTH, sampleP, { miss: [] }) + '</section>' +
+      '<section class="block"><h2>Microsoft Teams連携</h2><p class="note">この試作では見た目の確認だけで、Teamsにはまだ送信しません。</p><div class="field"><label for="setCh">送信先のチャネル名</label><input id="setCh" value="' + esc(tm.channel) + '"></div><label class="check"><input type="checkbox" data-tm="stock"' + (tm.stock ? ' checked' : '') + '>棚卸しの提出を知らせる</label><label class="check"><input type="checkbox" data-tm="diff"' + (tm.diff ? ' checked' : '') + '>貸与数との差異を目立たせる</label><label class="check"><input type="checkbox" data-tm="alert"' + (tm.alert ? ' checked' : '') + '>未出勤アラートを知らせる</label>' + teamsCard('uniform', K.CUR_MONTH, sampleP, { missing: [], counts: {} }) + '</section>' +
       '<section class="block"><h2>相談窓口</h2><div class="field"><label for="setInner">社内の窓口の連絡先</label><input id="setInner" value="' + esc(t.inner) + '"></div><div class="field"><label for="setOuter">社外の窓口の連絡先</label><input id="setOuter" value="' + esc(t.outer) + '"></div><p class="note">管理者が設定するのは連絡先だけです。誰が相談したか、何を相談したかは、このアプリには残りません。</p></section>';
   }
 
   function demoSheet() {
-    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 6 ／ データは架空のサンプルで、この端末の中だけに保存します。地図：地理院タイル、OpenStreetMap。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 7 ／ データは架空のサンプルで、この端末の中だけに保存します。地図：地理院タイル、OpenStreetMap。</p><button class="btn primary" data-close="1">閉じる</button></div>';
   }
 
   function renderOverlay() {
@@ -464,9 +480,9 @@ tr.hot td { background: var(--red-soft); }
     K.hydratePhotos($('content'));
     renderOverlay();
   }
-  function openPerson(mk, pid) {
-    V.person = { mk, pid }; V.sheet = 'person'; V.backing = false;
-    try { history.replaceState(null, '', '#stock/' + mk + '/' + pid); } catch (e) { /* 無視 */ }
+  function openPerson(kind, mk, pid) {
+    V.person = { kind, mk, pid }; V.sheet = 'person'; V.backing = false;
+    try { history.replaceState(null, '', '#stock/' + kind + '/' + mk + '/' + pid); } catch (e) { /* 無視 */ }
     renderOverlay();
   }
   function closeSheet() {
@@ -476,8 +492,8 @@ tr.hot td { background: var(--red-soft); }
     $('overlay').innerHTML = '';
   }
   function routeFromHash() {
-    const m = /^#stock\/(\d{4}-\d{1,2})\/([\w-]+)$/.exec(location.hash);
-    if (m && K.byId[m[2]]) { V.page = 'stock'; V.stockMonth = m[1]; render(); openPerson(m[1], m[2]); return true; }
+    const m = /^#stock\/(uniform|incam)\/(\d{4}-\d{1,2})\/([\w-]+)$/.exec(location.hash);
+    if (m && K.byId[m[3]]) { V.page = 'stock'; V.stockKind = m[1]; V.stockMonth = m[2]; render(); openPerson(m[1], m[2], m[3]); return true; }
     return false;
   }
 
@@ -511,7 +527,7 @@ tr.hot td { background: var(--red-soft); }
     if (d.jump) { if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump); closeSheet(); render(); return; }
     if (d.reset) { K.reset(); closeSheet(); render(); toast('最初の状態に戻しました'); return; }
     if (b.id === 'csv') { csv(); return; }
-    if (b.id === 'remindAll') { K.S.reminded.stock = true; K.save(); render(); toast('未提出の人に催促を送りました'); return; }
+    if (b.id === 'remindAll') { K.S.reminded[V.stockKind] = true; K.save(); render(); toast('未提出の人に催促を送りました'); return; }
     if (b.id === 'addStore') { openStoreForm(null); return; }
     if (b.id === 'bulkStore') { V.bulk = { text: '', items: [], msg: '' }; V.sheet = 'bulk'; renderOverlay(); return; }
     if (b.id === 'bulkRead') {
@@ -573,19 +589,23 @@ tr.hot td { background: var(--red-soft); }
       closeSheet(); render(); toast('店舗を保存しました'); return;
     }
     if (b.id === 'sfDelete') { K.removeStore(V.form.id); closeSheet(); render(); toast('店舗を削除しました'); return; }
+    if (d.kind) { V.stockKind = d.kind; V.stockEdit = false; V.stockLimit = 30; render(); return; }
     if (d.month) { V.stockMonth = d.month; V.stockEdit = false; V.stockLimit = 30; render(); return; }
     if (b.id === 'stockEdit') { V.stockEdit = !V.stockEdit; V.stockLimit = 30; render(); return; }
-    if (d.allt !== undefined) { P.filter((p) => inFilter(p, V.f.stock)).forEach((p) => K.setTarget(V.stockMonth, p.id, d.allt === '1')); render(); toast(d.allt === '1' ? '全員を対象にしました' : '全員を対象から外しました'); return; }
-    if (d.person) { openPerson(V.stockMonth, d.person); return; }
-    if (d.pmonth) { openPerson(d.pmonth, V.person.pid); return; }
-    if (b.id === 'invOk') { const { mk, pid } = V.person; K.setInv(mk, pid, Object.assign({}, K.invOf(mk, pid), { status: 'ok', backNote: '' })); render(); toast('確認済みにしました'); return; }
+    if (d.allt !== undefined) { P.filter((p) => inFilter(p, V.f.stock)).forEach((p) => K.setTarget(V.stockKind, V.stockMonth, p.id, d.allt === '1')); render(); toast(d.allt === '1' ? '全員を対象にしました' : '全員を対象から外しました'); return; }
+    if (d.person) { openPerson(V.stockKind, V.stockMonth, d.person); return; }
+    if (d.pmonth) { openPerson(V.person.kind, d.pmonth, V.person.pid); return; }
+    if (d.pkind) { openPerson(d.pkind, V.person.mk, V.person.pid); return; }
+    if (d.zoom) { const im = b.querySelector('img'); if (im) { const box = document.createElement('div'); box.className = 'lightbox'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', '写真の拡大'); box.innerHTML = '<button class="btn" data-unzoom="1">閉じる</button><div class="lb-scroll"><img alt=""></div>'; box.querySelector('img').src = im.src; box.querySelector('img').alt = im.alt; document.body.appendChild(box); } return; }
+    if (d.unzoom) { const lb = document.querySelector('.lightbox'); if (lb) lb.remove(); return; }
+    if (b.id === 'invOk') { const { kind, mk, pid } = V.person; K.setInv(kind, mk, pid, Object.assign({}, K.invOf(kind, mk, pid), { status: 'ok', backNote: '' })); render(); toast('確認済みにしました'); return; }
     if (b.id === 'invBack') { V.backing = true; renderOverlay(); return; }
     if (b.id === 'cancelBack') { V.backing = false; renderOverlay(); return; }
     if (b.id === 'sendBack') {
       const note = $('backNote').value.trim();
       if (!note) { const er = $('backErr'); er.textContent = '差し戻しの理由を入れてください。'; er.hidden = false; return; }
-      const { mk, pid } = V.person;
-      K.setInv(mk, pid, Object.assign({}, K.invOf(mk, pid), { status: 'back', backNote: note }));
+      const { kind, mk, pid } = V.person;
+      K.setInv(kind, mk, pid, Object.assign({}, K.invOf(kind, mk, pid), { status: 'back', backNote: note }));
       V.backing = false; render(); toast('差し戻しました'); return;
     }
   });
@@ -637,7 +657,7 @@ tr.hot td { background: var(--red-soft); }
     if (t.id === 'setDl') { const m = K.parseTime(t.value); if (m != null) { s.deadline = m; K.save(); renderSide(); } }
     if (t.id === 'setTarget') { s.target = t.value; K.save(); }
     if (t.id === 'setRadius') { s.radius = +t.value; K.save(); }
-    if (d.tg) { K.setTarget(V.stockMonth, d.tg, t.checked); }
+    if (d.tg) { K.setTarget(V.stockKind, V.stockMonth, d.tg, t.checked); }
     if (d.tm) { s.teams[d.tm] = t.checked; K.save(); }
   });
   window.addEventListener('hashchange', routeFromHash);
