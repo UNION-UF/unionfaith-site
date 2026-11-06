@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="assets/base.css?v=2">
+<link rel="stylesheet" href="assets/base.css?v=3">
 <style>
 /* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
 #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
@@ -94,7 +94,7 @@
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=2"></script>
+<script src="assets/core.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -104,11 +104,11 @@
   const esc = K.esc, fmt = K.fmt, ic = K.icon;
   const me = () => K.me();
   const firstName = () => me().name.split(' ')[0];
-  const dateLabel = '11月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
+  const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
 
   const openTasks = () => {
     const t = K.tasks().filter((x) => !K.isDone(x.id, me().id, 0)).map((x) => ({ id: x.id, title: x.title, due: x.due, kind: 'task' }));
-    if (!K.invOf(me().id)) t.unshift({ id: 'stock', title: '11月の制服・インカム棚卸し', due: '11/10', kind: 'stock' });
+    if (!K.invOf(me().id)) t.unshift({ id: 'stock', title: K.MONTH + '月の制服・インカム棚卸し', due: K.stockDue, kind: 'stock' });
     return t.sort((a, b) => (a.due || '').localeCompare(b.due || '', 'ja', { numeric: true }));
   };
   const unread = () => K.notices().filter((n) => !K.isDone(n.id, me().id, 0));
@@ -120,7 +120,7 @@
     }
     return '<header class="top"><div class="bar"><span class="brand">キョウモ</span>' + demoBtn() + '</div>' +
       '<div class="clock num"><b id="clockHM">' + fmt(now) + '</b><span id="clockS">' + sec + '</span></div>' +
-      '<div class="when"><span>' + dateLabel + '</span><span>' + esc(p.name) + 'さん</span></div></header>';
+      '<div class="when"><span>' + dateLabel + (K.isTest() ? '　テスト時刻' : '') + '</span><span>' + esc(p.name) + 'さん</span></div></header>';
   }
   const demoBtn = () => '<button class="demo-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button>';
 
@@ -162,7 +162,7 @@
     const planned = p.marks.filter((m) => m !== '休').length;
     let h = header('打刻の履歴') + '<main class="main page"><div class="summary"><div><small>今月の稼働</small><b class="num">' + worked + '</b><small>日</small></div><div><small>今月の予定</small><b class="num">' + planned + '</b><small>日</small></div><div><small>修正の依頼</small><b class="num">' + K.S.fixes.filter((f) => f.pid === p.id && f.state === 'open').length + '</b><small>件</small></div></div>';
     h += '<section class="card" style="padding-block:4px">' + rows.map((x) => {
-      const fix = K.S.fixes.find((f) => f.pid === p.id && f.date === '11/' + x.d);
+      const fix = K.S.fixes.find((f) => f.pid === p.id && f.date === K.dayLabel(x.d));
       const work = x.mark !== '休' && x.mark !== '在';
       const time = x.in != null ? '<span class="num">' + fmt(x.in) + ' – ' + (x.out != null ? fmt(x.out) : (x.today ? '勤務中' : '--:--')) + '</span>' : '<span class="muted">' + esc(work ? (x.today ? '未打刻' : '記録なし') : K.MARKS[x.mark]) + '</span>';
       const act = fix ? '<span class="pill ' + (fix.state === 'open' ? 'warn' : 'ok') + '">' + (fix.state === 'open' ? '確認中' : '修正済み') + '</span>' : (work ? '<button class="btn" style="min-height:34px;padding:2px 10px;font-size:12px" data-fix="' + x.d + '">修正を依頼</button>' : '');
@@ -182,7 +182,7 @@
     const inv = K.invOf(p.id);
     if (done.length || inv) {
       h += '<div class="section-label">提出済み</div>';
-      if (inv) h += '<section class="card"><div class="row"><span>11月の制服・インカム棚卸し</span><span class="pill ok">' + esc(inv.date) + '</span></div></section>';
+      if (inv) h += '<section class="card"><div class="row"><span>' + K.MONTH + '月の制服・インカム棚卸し</span><span class="pill ok">' + esc(inv.date) + '</span></div></section>';
       h += done.map((t) => '<section class="card"><div class="row"><span>' + esc(t.title) + '</span><span class="pill ok">提出済み</span></div></section>').join('');
     }
     return h + '</main>';
@@ -199,7 +199,7 @@
   function stockView() {
     const p = me(), inv = K.invOf(p.id), c = K.countsOf(p.id);
     let h = header('制服・インカム棚卸し') + '<main class="main page">';
-    h += '<section class="card"><div class="row"><b>手元にある数を入れてください</b><span class="pill ' + (inv ? 'ok' : 'warn') + '">' + (inv ? '提出済み' : '締切 11/10') + '</span></div><span class="small muted">貸与数と違うときは、事務局に自動で知らせます。</span></section>';
+    h += '<section class="card"><div class="row"><b>手元にある数を入れてください</b><span class="pill ' + (inv ? 'ok' : 'warn') + '">' + (inv ? '提出済み' : '締切 ' + K.stockDue) + '</span></div><span class="small muted">貸与数と違うときは、事務局に自動で知らせます。</span></section>';
     h += '<section class="card" style="padding-block:2px">' + K.ITEMS.map((i) => {
       const diff = c[i.k] - i.lent;
       return '<div class="step-row"><div><b>' + i.n + '</b><br><span class="small muted">貸与 ' + i.lent + i.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + i.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + i.k + '" data-d="-1" aria-label="' + i.n + 'を減らす"' + (inv ? ' disabled' : '') + '>−</button><span class="num">' + c[i.k] + '</span><button data-step="' + i.k + '" data-d="1" aria-label="' + i.n + 'を増やす"' + (inv ? ' disabled' : '') + '>＋</button></div></div>';
@@ -234,14 +234,14 @@
     const now = K.nowMin(), g = K.S.gps;
     const gpsOpts = [['real', '実際のGPS'], ['in', '現場内'], ['out', '現場外'], ['none', '取得不可']];
     return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
-      '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(now) + '</span></span><div class="jump-row">' + [[592, '09:52'], [614, '10:14'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + '<button class="btn" data-jump="real">今の時刻</button></div></div>' +
+      '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(now) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><span class="small muted">アラートなどを試すときだけ、時刻を変えられます。</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
       '<div class="field"><span class="lab">スタッフ</span><div class="seg">' + [['me1', '常勤'], ['me2', '移動型']].map((o) => '<button data-persona="' + o[0] + '" aria-pressed="' + (K.S.persona === o[0]) + '">' + o[1] + '（' + esc(K.byId[o[0]].name) + '）</button>').join('') + '</div></div>' +
       '<div class="field"><span class="lab">打刻時の位置</span><div class="seg">' + gpsOpts.map((o) => '<button data-gps="' + o[0] + '" aria-pressed="' + (g === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
       (g === 'real' ? '<span class="small muted">サンプル現場の位置は山口市です。今いる場所で範囲内を試すときは、下のボタンで現在地を現場に登録してください。</span><button class="btn" id="setGeo">' + ic('pin', 18) + '今いる場所を現場に登録</button>' : '') + '</div>' +
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
       '<button class="btn" data-reset="1">最初の状態に戻す</button>' +
-      '<p class="proto">試作版 2 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<p class="proto">試作版 3 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
   }
   function gpsSheet() {
@@ -270,7 +270,7 @@
   function snack(text, undo) {
     V.snack = { text, undo };
     clearTimeout(snackT);
-    snackT = setTimeout(() => { V.snack = null; renderOverlay(); }, undo ? 10000 : 2800);
+    snackT = setTimeout(() => { V.snack = null; renderOverlay(); }, undo ? 5000 : 2800);
     renderOverlay();
   }
 
@@ -319,7 +319,7 @@
     if (d.sheet) { V.sheet = d.sheet; V.err = ''; renderOverlay(); return; }
     if (d.close) { V.sheet = null; V.err = ''; renderOverlay(); return; }
     if (d.jump) {
-      if (d.jump === 'real') { const n = new Date(); K.setNow(n.getHours() * 60 + n.getMinutes()); } else K.setNow(+d.jump);
+      if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump);
       V.lastOver = K.status(me()).key === 'over'; V.sheet = null; checkOverdue(true); render(); return;
     }
     if (d.persona) { K.S.persona = d.persona; K.save(); V.sheet = 'demo'; render(); return; }
@@ -346,7 +346,7 @@
     if (b.id === 'sendFix') {
       const detail = $('fixDetail').value.trim();
       if (!detail) { V.err = '正しい時刻かメモを入れてください。'; renderOverlay(); return; }
-      K.S.fixes.unshift({ id: 'fx' + Date.now(), pid: me().id, date: '11/' + V.fixDay, kind: $('fixKind').value, detail, state: 'open' });
+      K.S.fixes.unshift({ id: 'fx' + Date.now(), pid: me().id, date: K.dayLabel(V.fixDay), kind: $('fixKind').value, detail, state: 'open' });
       K.save(); V.sheet = null; V.err = ''; render(); snack('修正の依頼を送りました'); return;
     }
     if (d.open) { V.sub = d.open; V.err = ''; V.draft = {}; window.scrollTo(0, 0); render(); return; }
@@ -362,7 +362,7 @@
     }
     if (b.id === 'submitStock') {
       const c = K.countsOf(me().id);
-      K.S.inv[me().id] = { date: '11/' + K.TODAY, miss: K.ITEMS.filter((i) => c[i.k] !== i.lent).map((i) => ({ k: i.k, count: c[i.k] })) };
+      K.S.inv[me().id] = { date: K.dayLabel(K.TODAY), miss: K.ITEMS.filter((i) => c[i.k] !== i.lent).map((i) => ({ k: i.k, count: c[i.k] })) };
       K.save(); V.sub = null; render(); snack('棚卸しを提出しました'); return;
     }
     if (d.read) { K.setDone(d.read, me().id); render(); return; }

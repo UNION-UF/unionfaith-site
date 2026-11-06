@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="../assets/base.css?v=2">
+<link rel="stylesheet" href="../assets/base.css?v=3">
 <style>
 /* 管理者は「今日いま対応が要る人」から順に見る。PCは左メニュー、スマホは上タブ。 */
 .shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
@@ -100,7 +100,7 @@ tr.hot td { background: var(--red-soft); }
 </div>
 <div id="overlay"></div>
 <div id="toast" role="status" hidden></div>
-<script src="../assets/core.js?v=2"></script>
+<script src="../assets/core.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -112,7 +112,7 @@ tr.hot td { background: var(--red-soft); }
   const over = () => P.filter((p) => K.status(p).key === 'over');
   const pending = () => over().filter((p) => !K.S.contacted[p.id]);
   const openFixes = () => K.S.fixes.filter((f) => f.state === 'open');
-  const dateLabel = '11月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
+  const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
   let toastT;
   function toast(m) { const t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
 
@@ -129,7 +129,7 @@ tr.hot td { background: var(--red-soft); }
     const ov = list.filter((p) => K.status(p).key === 'over');
     const check = shift.filter((p) => { const r = K.rec(p); return r.in != null && r.loc !== 'in'; });
     const dl = fmt(K.S.settings.deadline);
-    let h = '<div class="head"><h1>今日の出勤</h1><span class="meta num">' + dateLabel + ' ' + fmt(K.now()) + ' 時点 ／ 判定 ' + dl + '</span></div>';
+    let h = '<div class="head"><h1>今日の出勤</h1><span class="meta num">' + dateLabel + ' ' + fmt(K.now()) + (K.isTest() ? '（テスト時刻）' : '') + ' 時点 ／ 判定 ' + dl + '</span></div>';
     h += '<div class="chips" role="group" aria-label="エリア"><button class="chip" data-area="all" aria-pressed="' + (V.area === 'all') + '">全エリア ' + P.length + '</button>' + K.AREAS.map((a) => {
       const c = over().filter((p) => p.area === a.id && !K.S.contacted[p.id]).length;
       return '<button class="chip" data-area="' + a.id + '" aria-pressed="' + (V.area === a.id) + '">' + a.name + (c ? '<i class="num">' + c + '</i>' : '') + '</button>';
@@ -171,7 +171,7 @@ tr.hot td { background: var(--red-soft); }
   function shiftPage() {
     const list = P.filter((p) => p.area === V.shiftArea);
     const days = Array.from({ length: K.DAYS }, (_, i) => i + 1);
-    let h = '<div class="head"><h1>シフト</h1><span class="meta">2026年11月 ／ ' + list.length + '人</span></div>';
+    let h = '<div class="head"><h1>シフト</h1><span class="meta">' + K.YEAR + '年' + K.MONTH + '月 ／ ' + list.length + '人</span></div>';
     h += '<div class="chips" role="group" aria-label="エリア">' + K.AREAS.map((a) => '<button class="chip" data-sarea="' + a.id + '" aria-pressed="' + (V.shiftArea === a.id) + '">' + a.name + '</button>').join('') + '</div>';
     h += '<div class="grid-wrap"><table class="shift"><thead><tr><th class="nm">氏名</th>' + days.map((d) => '<th class="' + (d === K.TODAY ? 'today' : '') + '">' + d + '<span class="wk">' + K.weekday(d) + '</span></th>').join('') + '</tr></thead><tbody>' +
       list.map((p) => '<tr><td class="nm">' + esc(p.name) + '</td>' + p.marks.map((m, i) => '<td class="m-' + m + (i + 1 === K.TODAY ? ' today' : '') + '">' + m + '</td>').join('') + '</tr>').join('') +
@@ -201,7 +201,7 @@ tr.hot td { background: var(--red-soft); }
       const off = done.reduce((s, x) => { const m = x.inv.miss.find((y) => y.k === i.k); return s + (m ? m.count - i.lent : 0); }, 0);
       return { i, lent, have: lent + off, off };
     });
-    let h = '<div class="head"><h1>棚卸し</h1><span class="meta">11月分 ／ 締切 11/10</span></div>';
+    let h = '<div class="head"><h1>棚卸し</h1><span class="meta">' + K.MONTH + '月分 ／ 締切 ' + K.stockDue + '</span></div>';
     h += '<div class="stats"><div class="stat"><small>対象</small><b class="num">' + rows.length + '</b><em>人</em></div><div class="stat"><small>提出済み</small><b class="num">' + done.length + '</b><em>人</em></div><div class="stat' + (rest.length ? ' warn' : '') + '"><small>未提出</small><b class="num">' + rest.length + '</b><em>人</em></div><div class="stat' + (diff.length ? ' bad' : '') + '"><small>貸与数との差異</small><b class="num">' + diff.length + '</b><em>人</em></div></div>';
     h += '<section class="block"><h2>品目ごとの集計（提出済みの人のみ）</h2><div class="tablebox"><table><thead><tr><th>品目</th><th>貸与数</th><th>申告数</th><th>差</th></tr></thead><tbody>' + item.map((x) => '<tr><td><b>' + x.i.n + '</b></td><td class="num">' + x.lent + x.i.u + '</td><td class="num">' + x.have + x.i.u + '</td><td class="num">' + (x.off ? '<span class="pill bad">' + x.off + x.i.u + '</span>' : '0') + '</td></tr>').join('') + '</tbody></table></div></section>';
     if (diff.length) {
@@ -220,7 +220,7 @@ tr.hot td { background: var(--red-soft); }
 
   function sheet() {
     if (!V.sheet) return '';
-    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span></span><div class="jump-row">' + [[592, '09:52'], [614, '10:14'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 2 ／ データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2><div class="field"><span class="lab">時刻 <span class="num">' + fmt(K.now()) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div><a class="btn" href="../" style="text-decoration:none">' + ic('clock', 18) + 'スタッフアプリを開く</a><button class="btn" data-reset="1">最初の状態に戻す</button><p class="proto">試作版 3 ／ データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
   }
 
   function render() {
@@ -256,7 +256,7 @@ tr.hot td { background: var(--red-soft); }
     if (d.toggle) { V.open[d.toggle] = !V.open[d.toggle]; render(); return; }
     if (d.sheet) { V.sheet = true; $('overlay').innerHTML = sheet(); return; }
     if (d.close) { V.sheet = false; $('overlay').innerHTML = ''; return; }
-    if (d.jump) { K.setNow(+d.jump); V.sheet = false; render(); return; }
+    if (d.jump) { if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump); V.sheet = false; render(); return; }
     if (d.reset) { K.reset(); V.sheet = false; render(); toast('最初の状態に戻しました'); return; }
     if (b.id === 'csv') { csv(); return; }
     if (b.id === 'remindAll') { K.S.reminded.stock = true; K.save(); render(); toast('未提出の人に催促を送りました'); return; }
@@ -269,7 +269,7 @@ tr.hot td { background: var(--red-soft); }
     if (d.type === 'task' && !d.due.trim()) { d.err = '提出物には締切を入れてください。'; render(); return; }
     const id = 'p' + Date.now();
     if (d.type === 'task') K.S.posted.tasks.unshift({ id, title: d.title.trim(), body: d.body.trim() || '内容を確認して、提出してください。', due: d.due.trim(), ratio: 0 });
-    else K.S.posted.notices.unshift({ id, title: d.title.trim(), body: d.body.trim() || '内容を確認してください。', date: '11/' + K.TODAY, ratio: 0, important: false });
+    else K.S.posted.notices.unshift({ id, title: d.title.trim(), body: d.body.trim() || '内容を確認してください。', date: K.dayLabel(K.TODAY), ratio: 0, important: false });
     K.save();
     V.draft = { type: d.type, title: '', due: '', body: '', err: '' };
     render(); toast('全員に配信しました');

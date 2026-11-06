@@ -2,7 +2,7 @@
    本番ではこのファイルをサーバー接続に置き換える。 */
 (function () {
   'use strict';
-  const KEY = 'kyomo-proto-v2';
+  const KEY = 'kyomo-proto-v3';
   const AREAS = [
     { id: 'hokkaido', name: '北海道', field: 15, sv: 1, cities: ['札幌', '旭川', '帯広'] },
     { id: 'tohoku', name: '東北', field: 5, sv: 0, cities: ['仙台', '郡山'] },
@@ -21,10 +21,13 @@
     { k: 'chg', n: 'インカム充電器', u: '個', lent: 1 }
   ];
   const MARKS = { '〇': '全日稼働', '休': '休み', '研': '研修', 'M': 'ミーティング', '在': '在宅' };
-  const TODAY = 6;
-  const DAYS = 30;
+  const D0 = new Date();
+  const YEAR = D0.getFullYear(), MONTH = D0.getMonth() + 1, TODAY = D0.getDate();
+  const DAYS = new Date(YEAR, MONTH, 0).getDate();
+  const DAY_KEY = YEAR + '-' + MONTH + '-' + TODAY;
+  const md = (offset) => { const d = new Date(YEAR, MONTH - 1, TODAY + offset); return (d.getMonth() + 1) + '/' + d.getDate(); };
   const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
-  const weekday = (d) => WEEK[new Date(2026, 10, d).getDay()];
+  const weekday = (d) => WEEK[new Date(YEAR, MONTH - 1, d).getDay()];
   const FAMILY = ['青山', '朝倉', '有村', '飯塚', '石黒', '市川', '今井', '岩崎', '上田', '江口', '遠藤', '大沢', '大西', '岡田', '荻野', '小野寺', '香川', '笠原', '片岡', '川村', '北野', '木下', '久保', '黒田', '小池', '小林', '斎藤', '桜井', '柴田', '島村', '白石', '杉本', '関口', '高木', '滝沢', '竹内', '千葉', '塚本', '辻', '寺田', '中島', '長谷川', '西村', '野口', '橋本', '林', '平野', '福島', '藤本', '堀', '前川', '松井', '三浦', '水野', '宮本', '村田', '森', '矢野', '山崎', '吉川'];
   const GIVEN = ['あかり', '葵', '明日香', '彩', '和真', '楓', '奏太', '香織', '健太', '浩二', '颯太', '沙希', '栞', '翔平', '大輝', '拓海', '千尋', '智也', '直樹', '菜月', '遥', '光', '尚人', '真央', '美月', '結衣', '悠人', '陽菜', '蓮', '涼'];
 
@@ -106,20 +109,20 @@
   const byId = Object.fromEntries(PEOPLE.map((p) => [p.id, p]));
 
   const BASE_TASKS = [
-    { id: 't1', title: '12月のシフト希望', body: '希望休を含めて入力し、提出してください。', due: '11/15', ratio: 58, needsNote: true, placeholder: '例: 12/24 希望休、12/31 午前のみ' },
-    { id: 't2', title: '10月分の稼働報告', body: '稼働日数を確認し、気づいた点があれば書いて提出してください。', due: '11/10', ratio: 83, needsNote: true, placeholder: '例: 10/18 のイベント分を含みます' }
+    { id: 't1', title: '12月のシフト希望', body: '希望休を含めて入力し、提出してください。', due: md(9), ratio: 58, needsNote: true, placeholder: '例: 12/24 希望休、12/31 午前のみ' },
+    { id: 't2', title: '10月分の稼働報告', body: '稼働日数を確認し、気づいた点があれば書いて提出してください。', due: md(4), ratio: 83, needsNote: true, placeholder: '例: 10/18 のイベント分を含みます' }
   ];
   const BASE_NOTICES = [
-    { id: 'n1', title: '12月の集合研修のご案内', body: '12月8日(火) 10:00から実施します。会場は担当SVから連絡します。', date: '11/5', ratio: 71, important: true },
-    { id: 'n2', title: '年末年始の営業時間', body: '店舗ごとの営業時間を一覧にしました。担当店舗を確認してください。', date: '11/2', ratio: 88, important: false },
-    { id: 'n3', title: '欠勤連絡の手順', body: '欠勤するときは、担当SVと事務局の両方に連絡してください。', date: '10/28', ratio: 94, important: false }
+    { id: 'n1', title: '12月の集合研修のご案内', body: '12月8日(火) 10:00から実施します。会場は担当SVから連絡します。', date: md(-1), ratio: 71, important: true },
+    { id: 'n2', title: '年末年始の営業時間', body: '店舗ごとの営業時間を一覧にしました。担当店舗を確認してください。', date: md(-4), ratio: 88, important: false },
+    { id: 'n3', title: '欠勤連絡の手順', body: '欠勤するときは、担当SVと事務局の両方に連絡してください。', date: md(-9), ratio: 94, important: false }
   ];
 
   function fresh() {
     return {
-      v: 2,
-      touched: Date.now(),
-      clock: { base: 592, at: Date.now() },
+      v: 3,
+      day: DAY_KEY,
+      clock: null,
       persona: 'me1',
       gps: 'real',
       gpsOk: false,
@@ -133,8 +136,8 @@
       counts: {},
       inv: {},
       fixes: [
-        { id: 'fx1', pid: PEOPLE[12].id, date: '11/5', kind: '退勤の打刻忘れ', detail: '19:05 に退勤しました', state: 'open' },
-        { id: 'fx2', pid: PEOPLE[40].id, date: '11/4', kind: '出勤の打刻忘れ', detail: '09:50 に入店しました', state: 'open' }
+        { id: 'fx1', pid: PEOPLE[12].id, date: md(-1), kind: '退勤の打刻忘れ', detail: '19:05 に退勤しました', state: 'open' },
+        { id: 'fx2', pid: PEOPLE[40].id, date: md(-2), kind: '出勤の打刻忘れ', detail: '09:50 に入店しました', state: 'open' }
       ],
       posted: { tasks: [], notices: [] },
       settings: {
@@ -153,17 +156,26 @@
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.v === 2 && Date.now() - (s.touched || 0) < 45 * 60000) return s;
+        if (s.v === 3 && s.day === DAY_KEY) {
+          if (s.clock && Date.now() - s.clock.at > 30 * 60000) s.clock = null;
+          return s;
+        }
+        if (s.v === 3) {
+          const f = fresh();
+          ['settings', 'storeGeo', 'gpsOk', 'gps', 'persona'].forEach((k) => { f[k] = s[k]; });
+          return f;
+        }
       }
     } catch (e) { /* ブラウザ保存が使えなくても動かす */ }
     return fresh();
   }
   const listeners = [];
   const K = {
-    AREAS, ITEMS, MARKS, TODAY, DAYS, PEOPLE, byId, stores, weekday,
+    AREAS, ITEMS, MARKS, YEAR, MONTH, TODAY, DAYS, PEOPLE, byId, stores, weekday, md,
+    stockDue: md(4),
+    dayLabel: (d) => MONTH + '/' + d,
     S: load(),
     save() {
-      K.S.touched = Date.now();
       try { localStorage.setItem(KEY, JSON.stringify(K.S)); } catch (e) { /* 無視 */ }
     },
     reset() {
@@ -175,17 +187,14 @@
     onChange(fn) { listeners.push(fn); },
     now() {
       const c = K.S.clock;
-      return Math.min(1439, c.base + (Date.now() - c.at) / 60000);
+      if (c) return Math.min(1439.99, c.base + (Date.now() - c.at) / 60000);
+      const d = new Date();
+      return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
     },
     nowMin() { return Math.floor(K.now()); },
-    setNow(m) { K.S.clock = { base: m, at: Date.now() }; K.clearFuture(m); K.save(); },
-    clearFuture(m) {
-      Object.keys(K.S.punches).forEach((id) => {
-        const p = K.S.punches[id];
-        if (p.out != null && p.out > m) { p.out = null; p.outLoc = null; }
-        if (p.in != null && p.in > m) delete K.S.punches[id];
-      });
-    },
+    setNow(m) { K.S.clock = { base: m, at: Date.now() }; K.save(); },
+    setReal() { K.S.clock = null; K.save(); },
+    isTest() { return !!K.S.clock; },
     fmt(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0'); },
     esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
     parseTime(v) { const m = /^(\d{1,2}):(\d{2})$/.exec(v || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; },
@@ -194,8 +203,14 @@
     storeOf(p) { return p.store || K.S.todayStore[p.id] || p.todayStore || null; },
     rec(p) {
       const u = K.S.punches[p.id];
-      if (u) return { in: u.in, loc: u.loc, dist: u.dist, acc: u.acc, out: u.out == null ? null : u.out, outLoc: u.outLoc, outDist: u.outDist };
-      const d = p.seed, now = K.nowMin();
+      const now = K.nowMin();
+      if (u) {
+        /* テスト時刻より後の記録は隠すだけで消さない。実際の時刻に戻すと元に戻る */
+        if (u.in > now) return { in: null, loc: null, out: null };
+        const showOut = u.out != null && u.out <= now;
+        return { in: u.in, loc: u.loc, dist: u.dist, acc: u.acc, out: showOut ? u.out : null, outLoc: showOut ? u.outLoc : null, outDist: showOut ? u.outDist : null };
+      }
+      const d = p.seed;
       if (!d || now < d.in) return { in: null, loc: null, out: null };
       return { in: d.in, loc: d.loc, dist: d.dist, out: now >= d.out ? d.out : null };
     },
@@ -231,7 +246,7 @@
       const h = hash('inv' + pid) % 100;
       if (h >= 62) return null;
       const miss = h < 3 ? [{ k: ITEMS[h % ITEMS.length].k, count: ITEMS[h % ITEMS.length].lent - 1 }] : [];
-      return { date: '11/' + (1 + h % 5), miss };
+      return { date: md(-(1 + h % 5)), miss };
     },
     countsOf(pid) {
       if (!K.S.counts[pid]) K.S.counts[pid] = Object.fromEntries(ITEMS.map((i) => [i.k, i.lent]));
@@ -277,6 +292,8 @@
       return '<svg class="ic" viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[name] || '') + '</svg>';
     }
   };
+  /* 開いたまま日付が変わったら、その日の状態で開き直す */
+  setInterval(() => { if (new Date().getDate() !== TODAY) location.reload(); }, 30000);
   window.addEventListener('storage', (e) => {
     if (e.key !== KEY || !e.newValue) return;
     try { K.S = JSON.parse(e.newValue); listeners.forEach((fn) => fn()); } catch (err) { /* 無視 */ }
