@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@900&display=swap">
-<link rel="stylesheet" href="assets/base.css?v=4">
+<link rel="stylesheet" href="assets/base.css?v=5">
 <style>
 /* 親指が届く下端に打刻ボタンを固定し、上半分は「いま何時か、今日どこか」だけを見せる */
 #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--bg); position: relative; }
@@ -87,14 +87,27 @@
 @keyframes drop { from { transform: translate(-50%, -24px); opacity: 0; } }
 .snack { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(176px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 28px); max-width: 452px; background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; z-index: 20; font-size: 14px; }
 .snack.low { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-.snack button { font-weight: 700; text-decoration: underline; min-height: 34px; padding-inline: 6px; color: var(--bg); }
+.snack button { flex: none; white-space: nowrap; font-weight: 700; text-decoration: underline; min-height: 34px; padding-inline: 6px; color: var(--bg); }
 .proto { font-size: 12px; color: var(--muted); }
+.site-note { font-size: 15px; font-weight: 500; }
+.slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.slot { display: grid; gap: 5px; min-width: 0; }
+.slot b { font-size: 14px; }
+.slot .shot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; aspect-ratio: 4 / 3; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--sunken); color: var(--pine-ink); font-weight: 600; font-size: 13px; overflow: hidden; cursor: pointer; text-align: center; }
+.slot .shot.has { border-style: solid; }
+.slot .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slot .again { position: absolute; right: 6px; bottom: 6px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+.slot small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.pick { width: 100%; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; min-height: 50px; display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 600; }
+.pick small { font-weight: 400; color: var(--muted); }
+.seg.five button { font-size: 12px; padding-inline: 2px; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=4"></script>
+<script src="assets/core.js?v=5"></script>
 <script>
 (function () {
   'use strict';
@@ -106,9 +119,16 @@
   const firstName = () => me().name.split(' ')[0];
   const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
 
+  const stockState = () => {
+    const p = me(), mk = K.CUR_MONTH;
+    if (!K.isTarget(mk, p.id)) return 'none';
+    const i = K.invOf(mk, p.id);
+    return !i ? 'todo' : (i.status === 'back' ? 'back' : 'done');
+  };
   const openTasks = () => {
     const t = K.tasks().filter((x) => !K.isDone(x.id, me().id, 0)).map((x) => ({ id: x.id, title: x.title, due: x.due, kind: 'task' }));
-    if (!K.invOf(me().id)) t.unshift({ id: 'stock', title: K.MONTH + '月の制服・インカム棚卸し', due: K.stockDue, kind: 'stock' });
+    const ss = stockState();
+    if (ss === 'todo' || ss === 'back') t.unshift({ id: 'stock', title: (ss === 'back' ? '【差し戻し】' : '') + K.MONTH + '月の制服・インカム棚卸し', due: K.stockDue, kind: 'stock' });
     return t.sort((a, b) => (a.due || '').localeCompare(b.due || '', 'ja', { numeric: true }));
   };
   const unread = () => K.notices().filter((n) => !K.isDone(n.id, me().id, 0));
@@ -125,18 +145,20 @@
   const demoBtn = () => '<button class="demo-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button>';
 
   function homeView() {
-    const p = me(), r = K.rec(p), st = K.status(p), dl = K.S.settings.deadline, site = K.storeOf(p);
+    const p = me(), r = K.rec(p), st = K.status(p), dl = K.S.settings.deadline, home = K.homeStore(p), site = K.siteOf(p), help = K.isHelp(p);
     let h = header() + '<main class="main home">';
     if (st.key === 'over' && K.S.settings.target !== 'admin') {
       h += '<div class="alarm" role="alert"><b>' + fmt(dl) + 'を過ぎましたが、出勤の記録がありません</b><span>' + (K.S.settings.target === 'both' ? '管理者にも通知されています。' : '') + '現場にいる場合は「出勤」を押してください。</span></div>';
     }
-    if (K.S.reminded.stock && !K.invOf(p.id)) h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
+    if (K.S.reminded.stock && stockState() === 'todo') h += '<button class="linkcard" data-tab="todo"><span>管理者から棚卸しの催促が届いています</span>' + ic('chev', 18) + '</button>';
     h += '<section class="card"><div class="row"><span class="muted small">今日の現場</span><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></div>';
-    if (p.type === '移動型' && r.in == null) {
-      const opts = K.stores[p.area].map((s) => '<option' + (s === site ? ' selected' : '') + '>' + esc(s) + '</option>').join('');
-      h += '<div class="field"><label for="siteSel" class="small muted">移動型のため、今日の入店先を選んでください</label><select id="siteSel"><option value="">選択してください</option>' + opts + '</select></div>';
+    if (r.in != null) {
+      h += '<div class="today-site">' + esc(site ? site.name : '店舗の判定なし') + (help ? ' <span class="pill warn">応援</span>' : '') + '</div>';
+      if (help && home) h += '<div class="small muted">登録店舗は ' + esc(home.name) + ' です</div>';
+    } else if (home) {
+      h += '<div class="today-site">' + esc(home.name) + '</div>';
     } else {
-      h += '<div class="today-site">' + esc(site || '未設定') + '</div>';
+      h += '<div class="today-site site-note">出勤を押すと、今いる店舗を自動で判定します</div>';
     }
     h += '<div class="small muted">' + esc(K.MARKS[p.today]) + ' ／ 出勤の確認 ' + fmt(dl) + '</div></section>';
     h += '<section class="times"><div class="time-cell"><small>出勤</small><b class="num">' + (r.in != null ? fmt(r.in) : '--:--') + '</b>' + (r.loc ? '<div><span class="pill ' + K.locInfo(r.loc).pill + '">' + esc(K.locInfo(r.loc).short) + '</span></div>' : '') + '</div>' +
@@ -144,7 +166,7 @@
     if (r.in != null && r.loc) {
       h += '<div class="loc-line">' + ic('pin', 16) + '<span>' + esc(K.locInfo(r.loc, r.dist, r.acc).detail) + '</span></div>';
     } else {
-      h += '<div class="loc-line">' + ic('pin', 16) + '<span>位置は打刻の瞬間だけ確認します</span></div>';
+      h += '<div class="loc-line">' + ic('pin', 16) + '<span>位置は打刻の瞬間だけ確認します。応援先でも、そのまま押せます</span></div>';
     }
     const todo = openTasks();
     if (todo.length) h += '<button class="linkcard" data-tab="todo"><span>やることが <b class="num">' + todo.length + '</b> 件（最短の締切 ' + esc(todo[0].due || 'なし') + '）</span>' + ic('chev', 18) + '</button>';
@@ -179,10 +201,10 @@
     if (!open.length) h += '<section class="card"><b>すべて提出しました</b><span class="small muted">新しい提出物が届くと、ここに表示します。</span></section>';
     h += open.map((t) => '<button class="linkcard task" data-open="' + (t.kind === 'stock' ? 'stock' : 'task:' + t.id) + '"><span><b>' + esc(t.title) + '</b><br><span class="small muted">締切 ' + esc(t.due || 'なし') + '</span></span>' + ic('chev', 18) + '</button>').join('');
     const done = K.tasks().filter((t) => K.isDone(t.id, p.id, 0));
-    const inv = K.invOf(p.id);
-    if (done.length || inv) {
+    const inv = K.invOf(K.CUR_MONTH, p.id);
+    if (done.length || (inv && inv.status !== 'back')) {
       h += '<div class="section-label">提出済み</div>';
-      if (inv) h += '<section class="card"><div class="row"><span>' + K.MONTH + '月の制服・インカム棚卸し</span><span class="pill ok">' + esc(inv.date) + '</span></div></section>';
+      if (inv && inv.status !== 'back') h += '<button class="linkcard task" data-open="stock"><span>' + K.MONTH + '月の制服・インカム棚卸し</span><span class="pill ' + K.INV_STATUS[inv.status].pill + '">' + K.INV_STATUS[inv.status].label + '</span></button>';
       h += done.map((t) => '<section class="card"><div class="row"><span>' + esc(t.title) + '</span><span class="pill ok">提出済み</span></div></section>').join('');
     }
     return h + '</main>';
@@ -197,14 +219,29 @@
       '<button class="btn primary block" data-submit="' + esc(t.id) + '" style="min-height:54px">提出する</button></main>';
   }
   function stockView() {
-    const p = me(), inv = K.invOf(p.id), c = K.countsOf(p.id);
+    const p = me(), mk = K.CUR_MONTH;
+    if (!K.isTarget(mk, p.id)) return header('棚卸し') + '<main class="main page"><section class="card"><b>今月の棚卸しはありません</b><span class="small muted">対象の月になると、やることに表示します。</span></section></main>';
+    const inv = K.invOf(mk, p.id), locked = inv && inv.status !== 'back', c = K.countsOf(p.id), dr = K.draftOf(p.id);
+    const stat = inv ? K.INV_STATUS[inv.status] : { label: '締切 ' + K.stockDue, pill: 'warn' };
     let h = header('制服・インカム棚卸し') + '<main class="main page">';
-    h += '<section class="card"><div class="row"><b>手元にある数を入れてください</b><span class="pill ' + (inv ? 'ok' : 'warn') + '">' + (inv ? '提出済み' : '締切 ' + K.stockDue) + '</span></div><span class="small muted">貸与数と違うときは、事務局に自動で知らせます。</span></section>';
-    h += '<section class="card" style="padding-block:2px">' + K.ITEMS.map((i) => {
-      const diff = c[i.k] - i.lent;
-      return '<div class="step-row"><div><b>' + i.n + '</b><br><span class="small muted">貸与 ' + i.lent + i.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + i.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + i.k + '" data-d="-1" aria-label="' + i.n + 'を減らす"' + (inv ? ' disabled' : '') + '>−</button><span class="num">' + c[i.k] + '</span><button data-step="' + i.k + '" data-d="1" aria-label="' + i.n + 'を増やす"' + (inv ? ' disabled' : '') + '>＋</button></div></div>';
+    h += '<section class="card"><div class="row"><b>' + K.MONTH + '月の棚卸し</b><span class="pill ' + stat.pill + '">' + stat.label + '</span></div>';
+    if (inv && inv.status === 'back') h += '<span class="small" style="color:var(--red-ink)"><b>差し戻しの理由：</b>' + esc(inv.backNote) + '</span>';
+    else if (!locked) h += '<span class="small muted">写真を撮って、手元にある数を入れてください。</span>';
+    h += '</section><div class="section-label">写真</div><section class="slots">' + K.PHOTO_SLOTS.map((sl) => {
+      const id = locked ? inv.photos[sl.k] : dr[sl.k];
+      const inner = id ? '<img alt="' + sl.n + 'の写真" data-photo="' + esc(id) + '" data-key="' + p.id + sl.k + '" data-label="' + sl.n + '">' + (locked ? '' : '<span class="again">撮り直す</span>') : ic('camera', 26) + '<span>撮影する</span>';
+      if (locked) return '<div class="slot"><b>' + sl.n + '</b><div class="shot has">' + inner + '</div></div>';
+      return '<div class="slot"><b>' + sl.n + '</b><label class="shot' + (id ? ' has' : '') + '" for="ph-' + sl.k + '">' + inner + '</label><input class="vh" id="ph-' + sl.k + '" type="file" accept="image/*" capture="environment" data-slot="' + sl.k + '"><small>' + sl.hint + '</small></div>';
     }).join('') + '</section>';
-    if (!inv) h += '<button class="btn primary block" id="submitStock" style="min-height:54px">この内容で提出する</button>';
+    if (!locked) h += '<p class="small muted">お客様の情報や人の顔が写らないように撮影してください。</p>';
+    h += '<div class="section-label">数の確認</div><section class="card" style="padding-block:2px">' + K.ITEMS.map((i) => {
+      const miss = locked ? inv.miss.find((m) => m.k === i.k) : null;
+      const val = locked ? (miss ? miss.count : i.lent) : c[i.k];
+      const diff = val - i.lent;
+      return '<div class="step-row"><div><b>' + i.n + '</b><br><span class="small muted">貸与 ' + i.lent + i.u + '</span>' + (diff ? '<span class="diff">貸与数と ' + Math.abs(diff) + i.u + ' 違います</span>' : '') + '</div><div class="steps"><button data-step="' + i.k + '" data-d="-1" aria-label="' + i.n + 'を減らす"' + (locked ? ' disabled' : '') + '>−</button><span class="num">' + val + '</span><button data-step="' + i.k + '" data-d="1" aria-label="' + i.n + 'を増やす"' + (locked ? ' disabled' : '') + '>＋</button></div></div>';
+    }).join('') + '</section>';
+    if (V.err) h += '<div class="err">' + esc(V.err) + '</div>';
+    if (!locked) h += '<button class="btn primary block" id="submitStock" style="min-height:54px">' + (inv ? '再提出する' : 'この内容で提出する') + '</button>';
     return h + '</main>';
   }
 
@@ -232,16 +269,17 @@
 
   function demoSheet() {
     const now = K.nowMin(), g = K.S.gps;
-    const gpsOpts = [['real', '実際のGPS'], ['in', '現場内'], ['out', '現場外'], ['none', '取得不可']];
+    const gpsOpts = [['real', '実際のGPS'], ['in', '登録店舗'], ['help', '応援先'], ['out', '店舗外'], ['none', '取得不可']];
     return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
       '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(now) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><span class="small muted">アラートなどを試すときだけ、時刻を変えられます。</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16'], [1141, '19:01']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
       '<div class="field"><span class="lab">スタッフ</span><div class="seg">' + [['me1', '常勤'], ['me2', '移動型']].map((o) => '<button data-persona="' + o[0] + '" aria-pressed="' + (K.S.persona === o[0]) + '">' + o[1] + '（' + esc(K.byId[o[0]].name) + '）</button>').join('') + '</div></div>' +
-      '<div class="field"><span class="lab">打刻時の位置</span><div class="seg">' + gpsOpts.map((o) => '<button data-gps="' + o[0] + '" aria-pressed="' + (g === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
-      (g === 'real' ? '<span class="small muted">サンプル現場の位置は山口市です。今いる場所で範囲内を試すときは、下のボタンで現在地を現場に登録してください。</span><button class="btn" id="setGeo">' + ic('pin', 18) + '今いる場所を現場に登録</button>' : '') + '</div>' +
+      '<div class="field"><span class="lab">打刻時の位置</span><div class="seg five">' + gpsOpts.map((o) => '<button data-gps="' + o[0] + '" aria-pressed="' + (g === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+      (g === 'real' ? '<span class="small muted">今いる場所を実際に判定します。登録店舗から離れているときは、下のボタンで今いる場所を店舗に登録すると、範囲内の動きを試せます。</span><button class="btn" id="setGeo">' + ic('pin', 18) + '今いる場所を店舗に登録</button>' : '') + '</div>' +
+      '<div class="field"><label for="homeSel">このスタッフの登録店舗</label><select id="homeSel"><option value="">なし（移動型）</option>' + K.stores().filter((s) => s.area === me().area || !s.sample).map((s) => { const h = K.homeStore(me()); return '<option value="' + esc(s.id) + '"' + (h && h.id === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>' +
       (V.err ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理者アプリを開く</a>' +
       '<button class="btn" data-reset="1">最初の状態に戻す</button>' +
-      '<p class="proto">試作版 4 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
+      '<p class="proto">試作版 5 ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
   }
   function gpsSheet() {
@@ -255,6 +293,7 @@
   function render() {
     const views = { home: homeView, hist: histView, todo: todoView, news: newsView, help: helpView };
     $('app').innerHTML = views[V.tab]() + tabs();
+    K.hydratePhotos($('app'));
     renderOverlay();
   }
   function renderOverlay() {
@@ -264,6 +303,7 @@
     if (V.sheet === 'demo') h += demoSheet();
     if (V.sheet === 'gps') h += gpsSheet();
     if (V.sheet === 'fix') h += fixSheet();
+    if (V.sheet === 'pick' && V.pick) h += pickSheet();
     $('overlay').innerHTML = h;
   }
   let snackT, bannerT;
@@ -278,46 +318,73 @@
     return new Promise((resolve) => {
       const mode = K.S.gps;
       if (mode !== 'real') {
-        setTimeout(() => resolve(mode === 'in' ? { loc: 'in', dist: 32 } : mode === 'out' ? { loc: 'out', dist: 1800 } : { loc: 'none' }), 500);
+        const p = me(), area = K.stores().filter((s) => s.area === p.area);
+        const first = K.homeStore(p) || area[0], other = area.find((s) => s.id !== first.id);
+        setTimeout(() => {
+          if (mode === 'in') resolve({ cands: [{ store: first, dist: 32 }] });
+          else if (mode === 'help') resolve({ cands: [{ store: other, dist: 41 }] });
+          else if (mode === 'out') resolve({ cands: [], loc: 'out', dist: 1800, near: area.slice(0, 5).map((store) => ({ store })) });
+          else resolve({ cands: [], loc: 'none', near: area.slice(0, 5).map((store) => ({ store })) });
+        }, 500);
         return;
       }
-      if (!navigator.geolocation) { resolve({ loc: 'none' }); return; }
+      const fail = () => { const area = K.stores().filter((s) => s.area === me().area); resolve({ cands: [], loc: 'none', near: area.slice(0, 5).map((store) => ({ store })) }); };
+      if (!navigator.geolocation) { fail(); return; }
       navigator.geolocation.getCurrentPosition((pos) => {
-        const c = pos.coords, g = K.S.storeGeo, r = K.S.settings.radius;
-        const dist = K.distanceM(c.latitude, c.longitude, g.lat, g.lng);
-        if (dist <= r) resolve({ loc: 'in', dist, acc: c.accuracy });
-        else if (c.accuracy > Math.max(500, r * 2)) resolve({ loc: 'low', dist, acc: c.accuracy });
-        else resolve({ loc: 'out', dist, acc: c.accuracy });
-      }, () => resolve({ loc: 'none' }), { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+        const c = pos.coords, r = K.S.settings.radius, cands = K.matchStores(c.latitude, c.longitude, r);
+        if (cands.length) { resolve({ cands, acc: c.accuracy }); return; }
+        const near = K.nearestStores(c.latitude, c.longitude, 5);
+        resolve({ cands: [], loc: c.accuracy > Math.max(500, r * 2) ? 'low' : 'out', dist: near.length ? near[0].dist : null, acc: c.accuracy, near });
+      }, fail, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
     });
   }
   async function punch(kind) {
     const p = me();
-    if (kind === 'in' && p.type === '移動型' && !K.storeOf(p)) { snack('今日の入店先を選んでください'); return; }
     if (K.S.gps === 'real' && !K.S.gpsOk) { V.pending = kind; V.sheet = 'gps'; renderOverlay(); return; }
     V.busy = kind; render();
     const at = K.nowMin(), g = await locate();
     V.busy = false;
-    if (kind === 'in') {
-      K.S.punches[p.id] = { in: at, loc: g.loc, dist: g.dist, acc: g.acc, out: null };
-    } else {
-      Object.assign(K.S.punches[p.id] = K.S.punches[p.id] || { in: at }, { out: at, outLoc: g.loc, outDist: g.dist });
+    const rec = K.rec(p), home = K.homeStore(p);
+    if (kind === 'out' && g.cands.length) {
+      const same = g.cands.find((x) => x.store.id === rec.storeId);
+      if (same) { finish(kind, at, same.store.id, 'in', same.dist, g.acc); return; }
     }
+    if (g.cands.length === 1) { finish(kind, at, g.cands[0].store.id, 'in', g.cands[0].dist, g.acc); return; }
+    if (g.cands.length > 1) { V.pick = { kind, at, g, opts: g.cands, flagged: false }; V.sheet = 'pick'; render(); return; }
+    if (kind === 'out') { finish(kind, at, rec.storeId || (home && home.id) || null, g.loc, g.dist, g.acc); return; }
+    if (home) { finish(kind, at, home.id, g.loc, g.dist, g.acc); return; }
+    V.pick = { kind, at, g, opts: g.near || [], flagged: true }; V.sheet = 'pick'; render();
+  }
+  function finish(kind, at, storeId, loc, dist, acc) {
+    const p = me();
+    if (kind === 'in') K.S.punches[p.id] = { in: at, loc, dist, acc, storeId, out: null };
+    else Object.assign(K.S.punches[p.id] = K.S.punches[p.id] || { in: at, storeId }, { out: at, outLoc: loc, outDist: dist });
     K.save();
     try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) { /* 無視 */ }
+    V.sheet = null; V.pick = null;
     render();
     V.undo = kind;
-    snack((kind === 'in' ? '出勤' : '退勤') + 'を ' + fmt(at) + ' に記録しました', true);
+    const st = storeId ? K.store(storeId) : null, h = K.homeStore(p);
+    const prefix = st ? st.name + (kind === 'in' && h && h.id !== st.id ? '（応援）' : '') + 'で' : '';
+    snack(prefix + (kind === 'in' ? '出勤' : '退勤') + 'を ' + fmt(at) + ' に記録しました', true);
+  }
+  function pickSheet() {
+    const x = V.pick, label = x.kind === 'in' ? '出勤' : '退勤';
+    return '<div class="sheet-back" data-pickcancel="1"></div><div class="sheet" role="dialog" aria-label="店舗を選ぶ"><h2>' + (x.flagged ? '近くに登録店舗が見つかりません' : '近くに複数の店舗があります') + '</h2><p class="small muted">' + (x.flagged ? '今いる店舗を選んでください。管理者に確認の印が付きます。' : label + 'する店舗を選んでください。') + '</p>' +
+      x.opts.map((o) => '<button class="pick" data-pickstore="' + esc(o.store.id) + '"><span>' + esc(o.store.name) + '</span>' + (o.dist != null ? '<small class="num">' + (o.dist >= 1000 ? (o.dist / 1000).toFixed(1) + 'km' : Math.round(o.dist) + 'm') + '</small>' : '') + '</button>').join('') +
+      '<button class="btn" data-pickcancel="1">やめる</button></div>';
   }
 
   document.addEventListener('click', (e) => {
-    const b = e.target.closest('button, [data-close]');
+    const b = e.target.closest('button, [data-close], [data-pickcancel]');
     if (!b) return;
     const d = b.dataset;
     if (d.tab) { V.tab = d.tab; V.sub = null; V.err = ''; window.scrollTo(0, 0); render(); return; }
     if (d.back) { V.sub = null; V.err = ''; V.draft = {}; render(); return; }
     if (d.sheet) { V.sheet = d.sheet; V.err = ''; renderOverlay(); return; }
     if (d.close) { V.sheet = null; V.err = ''; renderOverlay(); return; }
+    if (d.pickcancel) { V.sheet = null; V.pick = null; renderOverlay(); return; }
+    if (d.pickstore) { const x = V.pick, o = x.opts.find((y) => y.store.id === d.pickstore); finish(x.kind, x.at, d.pickstore, x.flagged ? x.g.loc : 'in', o ? o.dist : x.g.dist, x.g.acc); return; }
     if (d.jump) {
       if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump);
       V.lastOver = K.status(me()).key === 'over'; V.sheet = null; checkOverdue(true); render(); return;
@@ -337,8 +404,10 @@
       V.err = '';
       if (!navigator.geolocation) { V.err = 'この端末では位置情報を使えません。'; renderOverlay(); return; }
       navigator.geolocation.getCurrentPosition((pos) => {
-        K.S.storeGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude }; K.save();
-        V.sheet = null; renderOverlay(); snack('今いる場所を現場に登録しました');
+        const c = pos.coords, h = K.homeStore(me());
+        if (h) K.updateStore(h.id, { lat: c.latitude, lng: c.longitude });
+        else { const a = me().area, st = K.stores().find((s) => s.area === a); K.S.homeOver[me().id] = K.addStore({ name: '現在地の店舗', pref: me().pref, area: a, lat: c.latitude, lng: c.longitude }); K.save(); void st; }
+        V.sheet = null; render(); snack('今いる場所を店舗に登録しました');
       }, () => { V.err = '位置を取得できませんでした。スマホの設定で、ブラウザの位置情報を許可してください。'; renderOverlay(); }, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
       return;
     }
@@ -361,16 +430,31 @@
       c[d.step] = Math.max(0, Math.min(9, c[d.step] + (+d.d))); K.save(); render(); return;
     }
     if (b.id === 'submitStock') {
-      const c = K.countsOf(me().id);
-      K.S.inv[me().id] = { date: K.dayLabel(K.TODAY), miss: K.ITEMS.filter((i) => c[i.k] !== i.lent).map((i) => ({ k: i.k, count: c[i.k] })) };
-      K.save(); V.sub = null; render(); snack('棚卸しを提出しました'); return;
+      const p = me(), dr = K.draftOf(p.id), lack = K.PHOTO_SLOTS.filter((s) => !dr[s.k]);
+      if (lack.length) { V.err = lack.map((s) => s.n).join('と') + 'の写真を撮影してください。'; render(); return; }
+      const c = K.countsOf(p.id);
+      K.setInv(K.CUR_MONTH, p.id, { date: K.md(0), status: 'wait', backNote: '', photos: Object.assign({}, dr), miss: K.ITEMS.filter((i) => c[i.k] !== i.lent).map((i) => ({ k: i.k, count: c[i.k] })) });
+      K.S.invDraft[p.id] = {}; K.save();
+      V.sub = null; V.err = ''; render(); snack('棚卸しを提出しました'); return;
     }
     if (d.read) { K.setDone(d.read, me().id); render(); return; }
   });
-  document.addEventListener('change', (e) => {
-    if (e.target.id === 'siteSel') {
-      if (e.target.value) K.S.todayStore[me().id] = e.target.value; else delete K.S.todayStore[me().id];
-      K.save();
+  document.addEventListener('change', async (e) => {
+    const t = e.target;
+    if (t.id === 'homeSel') {
+      K.S.homeOver[me().id] = t.value || null; K.save(); render(); return;
+    }
+    if (t.dataset && t.dataset.slot) {
+      const f = t.files && t.files[0];
+      if (!f) return;
+      V.err = '';
+      try {
+        const url = await K.shrinkImage(f, 1280, 0.72);
+        const id = 'ph-' + me().id + '-' + t.dataset.slot + '-' + Date.now();
+        await K.photoPut(id, url);
+        K.draftOf(me().id)[t.dataset.slot] = id; K.save();
+      } catch (err) { V.err = '写真を読み込めませんでした。もう一度撮影してください。'; }
+      render();
     }
   });
   document.addEventListener('input', (e) => { if (e.target.id === 'taskNote') V.draft.note = e.target.value; });
