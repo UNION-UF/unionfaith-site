@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="../assets/base.css?v=w1">
 <style>
 /* 委託先は「今日いま対応が要る人」から順に見る。PCは左メニュー、スマホは上タブ。 */
@@ -124,6 +125,9 @@ tr.hot td { background: var(--red-soft); }
 .store-line { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 12px; padding-block: 10px; border-top: 1px solid var(--line); }
 .store-line .sub { color: var(--muted); font-size: 13px; }
 .store-line .acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#storeMap { height: 260px; border-radius: 4px; background: var(--sunken); z-index: 0; }
+.loc-item .sub b { color: var(--amber-ink); font-weight: 700; }
+td .locd { display: block; font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -133,7 +137,8 @@ tr.hot td { background: var(--red-soft); }
 </div>
 <div id="overlay"></div>
 <div id="toast" role="status" hidden></div>
-<script src="../assets/core.js?v=b1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="../assets/core.js?v=b2"></script>
 <script>
 (function () {
   'use strict';
@@ -151,6 +156,9 @@ tr.hot td { background: var(--red-soft); }
   const inFilter = (p, f) => (f.area === 'all' || p.area === f.area) && (f.pref === 'all' || prefOf(p) === f.pref);
   const over = () => P.filter((p) => K.status(p).key === 'over');
   const pending = () => over().filter((p) => !K.S.contacted[p.id]);
+  /* 位置の確認が必要な人。報告はあるが、店舗の近くと判定できなかった人 */
+  const locIssues = () => P.filter((p) => { const r = K.report(p), li = r && K.locInfo(r); return li && li.check; });
+  const locPending = () => locIssues().filter((p) => !K.S.locChecked[p.id]);
   const dateLabel = K.MONTH + '月' + K.TODAY + '日(' + K.weekday(K.TODAY) + ')';
   const homeName = (p) => { const h = K.homeStore(p); return h ? h.name : '移動型'; };
   const STATE = { ready: ['準備完了', 'ok'], wait: ['確認中', 'warn'], none: ['予定なし', 'idle'] };
@@ -161,7 +169,7 @@ tr.hot td { background: var(--red-soft); }
     const mk = K.CUR_MONTH;
     const wait = ['uniform', 'incam'].reduce((n, kind) => n + P.filter((p) => K.isTarget(kind, mk, p.id) && (K.invOf(kind, mk, p.id) || {}).status === 'wait').length, 0);
     const reqs = K.S.storeRequests.filter((r) => r.state === 'open' && r.itaku === K.S.itaku).length;
-    const nav = [['today', '今日の報告', 'check', pending().length], ['stores', '店舗', 'store', reqs], ['shift', 'シフト', 'grid', 0], ['stock', '棚卸し', 'box', wait], ['tasks', '提出物・お知らせ', 'list', 0], ['set', '設定', 'sliders', 0]];
+    const nav = [['today', '今日の報告', 'check', pending().length + (K.gpsOn(K.S.itaku) ? locPending().length : 0)], ['stores', '店舗', 'store', reqs], ['shift', 'シフト', 'grid', 0], ['stock', '棚卸し', 'box', wait], ['tasks', '提出物・お知らせ', 'list', 0], ['set', '設定', 'sliders', 0]];
     $('side').innerHTML = '<span class="brand">キョウモ テストB</span><span class="role">委託先 ／ ' + esc(IT().name) + '</span><div class="navs">' +
       nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[2], 20) + n[1] + (n[3] ? '<span class="n num">' + n[3] + '</span>' : '') + '</button>').join('') +
       '</div><div class="foot"><button class="proto-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button></div>';
@@ -202,12 +210,19 @@ tr.hot td { background: var(--red-soft); }
     if (ov.length) {
       h += '<section class="block"><h2>連絡が必要な人（確認の時刻 ' + dl + ' を過ぎて未報告）</h2>' + ov.sort((a, b) => (K.S.contacted[a.id] ? 1 : 0) - (K.S.contacted[b.id] ? 1 : 0)).map((p) => '<div class="alert-item"><div><b>' + esc(p.name) + '</b><div class="sub">' + esc(prefOf(p)) + ' ／ ' + esc(homeName(p)) + '</div></div>' + (K.S.contacted[p.id] ? '<span class="pill idle">連絡済み</span>' : '<button class="btn" data-contact="' + p.id + '">連絡済みにする</button>') + '</div>').join('') + '</section>';
     }
+    const li = locIssues().filter((p) => inFilter(p, f));
+    if (K.gpsOn(K.S.itaku) && li.length) {
+      h += '<section class="block"><h2>位置の確認が必要な人（店舗から' + K.radius(K.S.itaku) + 'm以内と判定できなかった報告）</h2>' + li.sort((a, b) => (K.S.locChecked[a.id] ? 1 : 0) - (K.S.locChecked[b.id] ? 1 : 0)).map((p) => {
+        const r = K.report(p), x = K.locInfo(r), st = K.store(r.storeId);
+        return '<div class="alert-item loc-item"><div><b>' + esc(p.name) + '</b><div class="sub">' + esc(st ? st.name : '') + ' ／ <b>' + esc(x.short) + '</b> ／ ' + esc(x.detail) + '</div></div>' + (K.S.locChecked[p.id] ? '<span class="pill idle">確認済み</span>' : '<button class="btn" data-locok="' + p.id + '">確認済みにする</button>') + '</div>';
+      }).join('') + '<p class="note">本人に状況を確かめたら「確認済みにする」を押します。この情報は発注側には表示しません。</p></section>';
+    }
     h += '<section class="block"><div class="row"><h2>店舗の確定</h2>' + (complete.length ? '<button class="btn primary" id="confirmAll">報告が揃った' + complete.length + '店舗を確定する</button>' : '') + '</div><p class="note">発注側には店舗の結果だけを渡します。確定しても、発注側の表示が変わるのは確認の時刻を過ぎてからです。切り替わりの時刻から個人の到着が分からないようにするためです。</p><div>' + (rows.map((x) => {
       const st = x.scheduled ? ['確定済み ' + dl + 'に表示', 'ok'] : STATE[x.state];
       return '<div class="store-line"><div><b>' + esc(x.s.name) + '</b><div class="sub num">' + esc(x.s.pref) + ' ／ 報告 ' + x.got.length + '/' + x.exp.length + '人</div></div><div class="acts"><span class="pill ' + st[1] + '">' + st[0] + '</span>' + (x.confirmed ? '<button class="btn mini-btn" data-unconfirm="' + esc(x.s.id) + '">取り消す</button>' : (x.state === 'wait' ? '<button class="btn mini-btn" data-confirm="' + esc(x.s.id) + '">確定する</button>' : '')) + '</div></div>';
     }).join('') || '<p class="muted">今日の予定がある店舗はありません。</p>') + '</div></section>';
     h += shortageBlock();
-    h += '<section class="block"><h2>スタッフごとの状況</h2><div class="sel-row"><input id="q" type="search" placeholder="名前や店舗で探す" value="' + esc(V.q) + '" aria-label="名前や店舗で探す"><select id="st" aria-label="状態で絞り込む">' + [['all', 'すべての状態'], ['over', '未報告'], ['done', '報告済み'], ['before', '報告前'], ['help', '応援'], ['off', '休みなど']].map((o) => '<option value="' + o[0] + '"' + (V.st === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div id="tableArea"></div></section>';
+    h += '<section class="block"><h2>スタッフごとの状況</h2><div class="sel-row"><input id="q" type="search" placeholder="名前や店舗で探す" value="' + esc(V.q) + '" aria-label="名前や店舗で探す"><select id="st" aria-label="状態で絞り込む">' + [['all', 'すべての状態'], ['over', '未報告'], ['done', '報告済み'], ['before', '報告前'], ['help', '応援'], ['loc', '位置の確認が必要'], ['off', '休みなど']].map((o) => '<option value="' + o[0] + '"' + (V.st === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div><div id="tableArea"></div></section>';
     return h;
   }
   function shortageBlock() {
@@ -222,6 +237,7 @@ tr.hot td { background: var(--red-soft); }
     return P.filter((p) => inFilter(p, f)).filter((p) => {
       const st = K.status(p).key, site = K.todayStore(p);
       if (V.st === 'help' && !K.isHelp(p)) return false;
+      if (V.st === 'loc') { const r = K.report(p), li = r && K.locInfo(r); if (!li || !li.check) return false; }
       if (['over', 'done', 'before', 'off'].includes(V.st) && st !== V.st) return false;
       return !q || (p.name + homeName(p) + (site ? site.name : '')).replace(/\s/g, '').includes(q);
     }).sort((a, b) => rank[K.status(a).key] - rank[K.status(b).key]);
@@ -230,10 +246,12 @@ tr.hot td { background: var(--red-soft); }
     const el = $('tableArea');
     if (!el) return;
     const rows = filtered(), show = rows.slice(0, V.limit);
-    el.innerHTML = '<div class="tablebox"><table><thead><tr><th>スタッフ</th><th>県</th><th>登録店舗</th><th>今日の店舗</th><th>状態</th></tr></thead><tbody>' + (show.map((p) => {
-      const st = K.status(p), site = K.todayStore(p);
-      return '<tr' + (st.key === 'over' ? ' class="hot"' : '') + '><td><b>' + esc(p.name) + '</b></td><td>' + esc(prefOf(p)) + '</td><td>' + esc(homeName(p)) + '</td><td>' + (st.key === 'off' ? '—' : (site ? esc(site.name) + (K.isHelp(p) ? ' <span class="pill warn">応援</span>' : '') : '—')) + '</td><td><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></td></tr>';
-    }).join('') || '<tr><td colspan="5" class="muted">条件に合う人はいません。</td></tr>') + '</tbody></table></div>' +
+    const gps = K.gpsOn(K.S.itaku);
+    el.innerHTML = '<div class="tablebox"><table><thead><tr><th>スタッフ</th><th>県</th><th>登録店舗</th><th>今日の店舗</th><th>状態</th>' + (gps ? '<th>位置の確認</th>' : '') + '</tr></thead><tbody>' + (show.map((p) => {
+      const st = K.status(p), site = K.todayStore(p), r = K.report(p), li = r && K.locInfo(r);
+      const locCell = gps ? '<td>' + (li ? '<span class="pill ' + li.pill + '">' + esc(li.check ? li.short.replace(/^要確認（(.*)）$/, '要確認：$1') : li.short) + '</span><span class="locd num">' + esc(li.detail) + '</span>' : '—') + '</td>' : '';
+      return '<tr' + (st.key === 'over' ? ' class="hot"' : '') + '><td><b>' + esc(p.name) + '</b></td><td>' + esc(prefOf(p)) + '</td><td>' + esc(homeName(p)) + '</td><td>' + (st.key === 'off' ? '—' : (site ? esc(site.name) + (K.isHelp(p) ? ' <span class="pill warn">応援</span>' : '') : '—')) + '</td><td><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></td>' + locCell + '</tr>';
+    }).join('') || '<tr><td colspan="6" class="muted">条件に合う人はいません。</td></tr>') + '</tbody></table></div>' +
       '<div class="row" style="margin-top:8px"><span class="note num">' + rows.length + '人中 ' + show.length + '人を表示</span>' + (rows.length > V.limit ? '<button class="btn" data-more="1">さらに30人表示</button>' : '') + '</div>';
   }
 
@@ -258,12 +276,90 @@ tr.hot td { background: var(--red-soft); }
     return '<div class="head"><h1>店舗</h1><button class="btn primary" id="addStore">' + ic('store', 18) + '店舗を追加</button></div>' +
       (reqs.length ? '<section class="block"><h2>スタッフからの店舗の申請</h2>' + reqs.map((r) => '<div class="alert-item"><div><b>' + esc(r.name) + '</b><div class="sub">' + esc(K.byId[r.pid].name) + ' ／ ' + esc(r.date) + '</div></div><div class="sel-row"><button class="btn primary mini-btn" data-reqok="' + esc(r.id) + '">登録する</button><button class="btn mini-btn" data-reqno="' + esc(r.id) + '">却下</button></div></div>').join('') + '</section>' : '') +
       regionFilter('stores', true, '<input id="storeQ" type="search" placeholder="店舗名で探す" value="' + esc(V.storeQ) + '" aria-label="店舗名で探す">') +
-      '<div class="tablebox"><table><thead><tr><th>店舗</th><th>県</th><th>登録スタッフ</th></tr></thead><tbody>' + (show.map((s) => '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.pref) + '</td><td class="num">' + homeCount(s.id) + '人</td></tr>').join('') || '<tr><td colspan="3" class="muted">条件に合う店舗はありません。</td></tr>') + '</tbody></table></div>' +
+      '<div class="tablebox"><table><thead><tr><th>店舗</th><th>県</th><th>登録スタッフ</th><th>店舗の位置</th><th></th></tr></thead><tbody>' + (show.map((s) => '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.pref) + '</td><td class="num">' + homeCount(s.id) + '人</td><td>' + (s.lat != null ? '<span class="pill ok">登録済み</span>' : '<span class="pill warn">未登録</span>') + '</td><td><button class="btn mini-btn" data-editstore="' + esc(s.id) + '">' + (s.lat != null ? '位置を確認' : '位置を登録') + '</button></td></tr>').join('') || '<tr><td colspan="5" class="muted">条件に合う店舗はありません。</td></tr>') + '</tbody></table></div>' +
       '<div class="row"><span class="note num">' + list.length + '店舗中 ' + show.length + '店舗を表示</span>' + (list.length > V.storeLimit ? '<button class="btn" data-storemore="1">さらに表示</button>' : '') + '</div>';
   }
   function storeSheet() {
     const F = V.form, prefs = Object.keys(K.PREF_AREA).filter((x) => IT().areas.includes(K.PREF_AREA[x]));
-    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="店舗の追加"><h2>店舗を追加</h2><div class="field"><label for="sfName">店舗名</label><input id="sfName" value="' + esc(F.name) + '"></div><div class="field"><label for="sfPref">都道府県</label><select id="sfPref"><option value="">選択してください</option>' + prefs.map((x) => '<option' + (F.pref === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div><div id="sfErr" class="err" hidden></div><button class="btn primary" id="sfSave" style="min-height:50px">保存する</button><button class="btn" data-close="1">閉じる</button></div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="店舗の位置"><h2>' + (F.id ? '店舗の位置を確認' : '店舗を追加') + '</h2>' +
+      '<div class="field"><label for="sfQ">Googleマップのリンク、店舗名、住所のどれかを入れてください</label><div class="search-row"><input id="sfQ" placeholder="例: https://www.google.com/maps/place/…" autocomplete="off"><button class="btn primary" id="sfSearch" type="button">探す</button></div></div>' +
+      '<button class="btn" id="sfHere" type="button">' + ic('pin', 18) + '今いる場所を使う</button>' +
+      '<div id="sfMsg" class="err" hidden></div><div id="sfResults"></div>' +
+      '<div id="storeMap"></div><p class="note" id="sfPos"></p>' +
+      '<div class="two"><div class="field"><label for="sfName">店舗名</label><input id="sfName" value="' + esc(F.name) + '"></div><div class="field"><label for="sfPref">都道府県</label><select id="sfPref"><option value="">選択してください</option>' + prefs.map((x) => '<option' + (F.pref === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div>' +
+      '<p class="note">地図のピンは動かせます。売り場の入口あたりに合わせると、判定が安定します。円の内側で報告すると「店舗の近く」になります。</p>' +
+      '<div id="sfErr" class="err" hidden></div>' +
+      '<button class="btn primary" id="sfSave" type="button" style="min-height:50px">この内容で保存する</button><button class="btn" data-close="1" type="button">閉じる</button></div>';
+  }
+  /* Googleマップのリンクや「緯度, 経度」から位置を読み取る */
+  function parseLatLng(text) {
+    const t = String(text || '');
+    if (/(^|\/\/)(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(t)) return { short: true };
+    const pats = [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, /@(-?\d+\.\d+),(-?\d+\.\d+)/, /[?&](?:q|ll|query|destination)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i, /^\s*(-?\d{1,2}\.\d+)\s*[,、 ]\s*(-?\d{2,3}\.\d+)\s*$/];
+    for (const p of pats) { const m = p.exec(t); if (m) return { lat: +m[1], lng: +m[2] }; }
+    return null;
+  }
+  const prefFromText = (text) => Object.keys(K.PREF_AREA).find((p) => String(text || '').includes(p)) || '';
+  let map = null, marker = null, circle = null;
+  function posText() {
+    const F = V.form, el = $('sfPos');
+    if (!el) return;
+    el.textContent = F.lat != null ? '位置 ' + F.lat.toFixed(5) + ', ' + F.lng.toFixed(5) + ' ／ 判定の範囲 ' + K.radius(K.S.itaku) + 'm' : 'まだ位置が決まっていません。上で店舗を探すか、地図を押してください。';
+  }
+  function setPos(lat, lng, zoom) {
+    const F = V.form;
+    F.lat = lat; F.lng = lng; posText();
+    if (!window.L || !map) return;
+    const ll = [lat, lng];
+    if (!marker) {
+      marker = L.marker(ll, { draggable: true, icon: L.divIcon({ className: '', html: '<div style="width:22px;height:22px;border-radius:50%;background:#C2410C;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45)"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map);
+      marker.on('dragend', () => { const p = marker.getLatLng(); setPos(p.lat, p.lng); });
+      circle = L.circle(ll, { radius: K.radius(K.S.itaku), color: '#17305C', weight: 2, fillOpacity: 0.12 }).addTo(map);
+    } else { marker.setLatLng(ll); circle.setLatLng(ll); }
+    map.setView(ll, zoom || map.getZoom());
+  }
+  function openStoreForm(st, extra) {
+    V.form = Object.assign(st ? { id: st.id, name: st.name, pref: st.pref, lat: st.lat, lng: st.lng } : { id: null, name: '', pref: '', lat: null, lng: null }, extra || {});
+    V.sheet = 'store';
+    if (map) { try { map.remove(); } catch (e) { /* 無視 */ } }
+    map = marker = circle = null;
+    $('overlay').innerHTML = storeSheet();
+    posText();
+    const F = V.form;
+    if (window.L) {
+      const has = F.lat != null;
+      map = L.map('storeMap', { scrollWheelZoom: false }).setView(has ? [F.lat, F.lng] : [34.18, 131.47], has ? 17 : 9);
+      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>' }).addTo(map);
+      map.on('click', (e) => setPos(e.latlng.lat, e.latlng.lng));
+      if (has) setPos(F.lat, F.lng, 17);
+      setTimeout(() => map && map.invalidateSize(), 260);
+    } else {
+      $('storeMap').innerHTML = '<p class="note" style="padding:14px">地図を読み込めませんでした。リンクの貼り付けと店舗名での検索は使えます。</p>';
+    }
+  }
+  function sfMessage(t) { const m = $('sfMsg'); if (m) { m.textContent = t || ''; m.hidden = !t; } }
+  async function searchStore() {
+    const q = $('sfQ').value.trim(), box = $('sfResults');
+    sfMessage(''); box.innerHTML = '';
+    if (!q) { sfMessage('Googleマップのリンク、店舗名、住所のどれかを入れてください。'); return; }
+    const parsed = parseLatLng(q);
+    if (parsed && parsed.short) { sfMessage('スマホの共有ボタンで作る短いリンクは読み取れません。パソコンのブラウザでGoogleマップを開き、上に出るURLを貼ってください。'); return; }
+    if (parsed) { setPos(parsed.lat, parsed.lng, 17); return; }
+    box.innerHTML = '<p class="note">探しています。</p>';
+    const out = [];
+    const [osm, gsi] = await Promise.allSettled([
+      fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=jp&accept-language=ja&q=' + encodeURIComponent(q)).then((r) => r.json()),
+      fetch('https://msearch.gsi.go.jp/address-search/AddressSearch?q=' + encodeURIComponent(q)).then((r) => r.json())
+    ]);
+    if (osm.status === 'fulfilled' && Array.isArray(osm.value)) osm.value.forEach((x) => out.push({ name: x.name || String(x.display_name).split(',')[0], addr: x.display_name, lat: +x.lat, lng: +x.lon, src: 'OpenStreetMap' }));
+    if (gsi.status === 'fulfilled' && Array.isArray(gsi.value)) gsi.value.slice(0, 5).forEach((x) => out.push({ name: x.properties.title, addr: x.properties.title, lat: x.geometry.coordinates[1], lng: x.geometry.coordinates[0], src: '国土地理院' }));
+    V.results = out;
+    if (!out.length) {
+      box.innerHTML = '';
+      sfMessage(osm.status === 'rejected' && gsi.status === 'rejected' ? '検索につながりませんでした。少し待ってやり直してください。' : '見つかりませんでした。住所で探すか、Googleマップのリンクを貼ってください。');
+      return;
+    }
+    box.innerHTML = out.map((x, i) => '<button class="result" type="button" data-result="' + i + '"><span>' + esc(x.name) + '</span><small>' + esc(x.addr) + '（' + x.src + '）</small></button>').join('');
   }
 
   function stockPage() {
@@ -342,7 +438,9 @@ tr.hot td { background: var(--red-soft); }
     const t = K.S.settings;
     return '<div class="head"><h1>設定</h1></div>' +
       '<section class="block"><h2>報告の確認</h2><div class="two"><div class="field"><label for="setDl">確認の時刻</label><input id="setDl" type="time" value="' + fmt(K.deadline(K.S.itaku)) + '"></div><div class="field"><label for="setTarget">未報告の通知先</label><select id="setTarget">' + [['both', '委託先と本人'], ['itaku', '委託先のみ']].map((o) => '<option value="' + o[0] + '"' + (t.target === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div></div><p class="note">確認の時刻は各委託先が決めます。発注側には通知しません。</p></section>' +
-      '<section class="block"><h2>位置情報</h2><div class="row"><span>位置情報の利用</span><span class="pill idle">使わない</span></div><p class="note">テストBでは位置情報を取得しません。アライアンス先の許可と本人の同意が得られた場合に、追加を検討します。</p></section>' +
+      '<section class="block"><h2>位置の確認</h2><div class="seg" style="max-width:560px"><button data-setgps="1" aria-pressed="' + K.gpsOn(K.S.itaku) + '">使う（報告を押した瞬間だけ）</button><button data-setgps="0" aria-pressed="' + !K.gpsOn(K.S.itaku) + '">使わない</button></div>' +
+        (K.gpsOn(K.S.itaku) ? '<div class="field" style="max-width:280px"><label for="setRadius">店舗の近くとみなす範囲</label><select id="setRadius">' + [100, 200, 300, 500].map((v) => '<option value="' + v + '"' + (K.radius(K.S.itaku) === v ? ' selected' : '') + '>店舗から' + v + 'm以内</option>').join('') + '</select></div>' : '') +
+        '<p class="note">報告を押した瞬間の位置と、店舗の登録位置との距離で判定します。移動中や休みの日の位置は取りません。結果を見られるのは本人と委託先だけで、発注側には表示しません。使う前に、本人への説明と同意、アライアンス先の許可を整えてください。</p></section>' +
       '<section class="block"><h2>相談窓口</h2><div class="field"><label for="setInner">社内の窓口の連絡先</label><input id="setInner" value="' + esc(t.inner) + '"></div><div class="field"><label for="setOuter">社外の窓口の連絡先</label><input id="setOuter" value="' + esc(t.outer) + '"></div><p class="note">設定するのは連絡先だけです。誰が相談したか、何を相談したかは、このアプリには残りません。</p></section>';
   }
 
@@ -355,7 +453,7 @@ tr.hot td { background: var(--red-soft); }
 
   function renderOverlay() {
     if (V.sheet === 'demo') $('overlay').innerHTML = demoSheet();
-    else if (V.sheet === 'store') $('overlay').innerHTML = storeSheet();
+    else if (V.sheet === 'store') { if (!$('storeMap')) openStoreForm(V.form && V.form.id ? K.store(V.form.id) : null, V.form || {}); }
     else if (V.sheet === 'person') { $('overlay').innerHTML = personSheet(); K.hydratePhotos($('overlay')); }
     else $('overlay').innerHTML = '';
   }
@@ -368,7 +466,7 @@ tr.hot td { background: var(--red-soft); }
     renderOverlay();
   }
   function openPerson(kind, mk, pid) { V.person = { kind, mk, pid }; V.sheet = 'person'; V.backing = false; renderOverlay(); }
-  function closeSheet() { V.sheet = null; V.person = null; V.form = null; V.backing = false; $('overlay').innerHTML = ''; }
+  function closeSheet() { if (map) { try { map.remove(); } catch (e) { /* 無視 */ } map = marker = circle = null; } V.sheet = null; V.person = null; V.form = null; V.backing = false; $('overlay').innerHTML = ''; }
   function resetFilters() { Object.keys(V.f).forEach((k) => { V.f[k] = { area: 'all', pref: 'all' }; }); V.limit = 30; V.stockLimit = 30; V.storeLimit = 30; V.q = ''; V.storeQ = ''; V.st = 'all'; V.shortErr = ''; }
 
   document.addEventListener('click', (e) => {
@@ -399,14 +497,35 @@ tr.hot td { background: var(--red-soft); }
     if (d.jump) { if (d.jump === 'real') K.setReal(); else K.setNow(+d.jump); closeSheet(); render(); return; }
     if (d.reset) { K.reset(); closeSheet(); resetFilters(); render(); toast('最初の状態に戻しました'); return; }
     if (b.id === 'remindAll') { K.S.reminded[V.stockKind] = true; K.save(); render(); toast('未提出の人に催促を送りました'); return; }
-    if (b.id === 'addStore') { V.form = { name: '', pref: '' }; V.sheet = 'store'; renderOverlay(); return; }
-    if (d.reqok) { const r = K.S.storeRequests.find((y) => y.id === d.reqok); V.form = { name: r.name, pref: K.byId[r.pid].pref, fromReq: r.id }; V.sheet = 'store'; renderOverlay(); return; }
+    if (b.id === 'addStore') { openStoreForm(null); return; }
+    if (d.reqok) { const r = K.S.storeRequests.find((y) => y.id === d.reqok); openStoreForm(null, { name: r.name, pref: K.byId[r.pid].pref, fromReq: r.id }); return; }
+    if (d.editstore) { openStoreForm(K.store(d.editstore)); return; }
+    if (d.locok) { K.S.locChecked[d.locok] = true; K.save(); render(); toast('確認済みにしました'); return; }
+    if (b.id === 'sfSearch') { searchStore(); return; }
+    if (b.id === 'sfHere') {
+      sfMessage('');
+      if (!navigator.geolocation) { sfMessage('この端末では位置情報を使えません。'); return; }
+      navigator.geolocation.getCurrentPosition((pos) => setPos(pos.coords.latitude, pos.coords.longitude, 17), () => sfMessage('位置を取得できませんでした。ブラウザの位置情報を許可してください。'), { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+      return;
+    }
+    if (d.result !== undefined) {
+      const x = V.results[+d.result], F = V.form;
+      if (!$('sfName').value.trim()) { $('sfName').value = x.name; F.name = x.name; }
+      const pref = prefFromText(x.addr);
+      if (pref && [...$('sfPref').options].some((o) => o.value === pref)) { $('sfPref').value = pref; F.pref = pref; }
+      setPos(x.lat, x.lng, 17);
+      $('sfResults').innerHTML = '';
+      return;
+    }
+    if (d.setgps !== undefined) { K.S.settings.gps[K.S.itaku] = d.setgps === '1'; K.save(); render(); toast(d.setgps === '1' ? '位置の確認を使う設定にしました' : '位置の確認を使わない設定にしました'); return; }
     if (d.reqno) { const r = K.S.storeRequests.find((y) => y.id === d.reqno); r.state = 'no'; K.save(); render(); toast('申請を却下しました'); return; }
     if (b.id === 'sfSave') {
       const F = V.form, name = $('sfName').value.trim(), pref = $('sfPref').value, err = $('sfErr');
-      const msg = !name ? '店舗名を入れてください。' : !pref ? '都道府県を選んでください。' : '';
+      const msg = !name ? '店舗名を入れてください。' : !pref ? '都道府県を選んでください。' : F.lat == null ? '店舗の位置を決めてください。' : '';
       if (msg) { err.textContent = msg; err.hidden = false; return; }
-      K.addStore({ name, pref, area: K.PREF_AREA[pref] });
+      const data = { name, pref, area: K.PREF_AREA[pref], lat: F.lat, lng: F.lng };
+      if (F.id) K.updateStore(F.id, data); else K.addStore(data);
+      K._sm = null;
       if (F.fromReq) { const r = K.S.storeRequests.find((y) => y.id === F.fromReq); r.state = 'ok'; K.save(); }
       closeSheet(); render(); toast('店舗を保存しました'); return;
     }
@@ -465,6 +584,7 @@ tr.hot td { background: var(--red-soft); }
     if (t.id === 'nType') V.draft.type = t.value;
     if (t.id === 'setDl') { const m = K.parseTime(t.value); if (m != null) { s.deadlines[K.S.itaku] = m; K.save(); renderSide(); } }
     if (t.id === 'setTarget') { s.target = t.value; K.save(); }
+    if (t.id === 'setRadius') { s.radius[K.S.itaku] = +t.value; K.save(); toast('範囲を' + t.value + 'mにしました'); }
     if (d.tg) { K.setTarget(V.stockKind, V.stockMonth, d.tg, t.checked); }
   });
   const activeIsForm = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName); };

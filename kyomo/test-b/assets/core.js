@@ -85,7 +85,8 @@
     const n = Math.max(2, Math.ceil(a.field / 2.4));
     for (let i = 0; i < n; i++) {
       const c = a.cities[i % a.cities.length], round = Math.floor(i / a.cities.length);
-      BASE_STORES.push({ id: 'st-' + a.id + '-' + i, name: c.n + 'ABCDEFGHJK'[round] + '店', area: a.id, pref: c.pref, sample: true });
+      /* 見本の店舗位置。本番は委託先がGoogleマップのリンクや住所から登録する */
+      BASE_STORES.push({ id: 'st-' + a.id + '-' + i, name: c.n + 'ABCDEFGHJK'[round] + '店', area: a.id, pref: c.pref, lat: +(c.lat + round * 0.0104 + ((i * 7) % 3 - 1) * 0.0031).toFixed(5), lng: +(c.lng + ((i * 5) % 3 - 1) * 0.0123).toFixed(5), sample: true });
     }
   });
   const baseOf = (area) => BASE_STORES.filter((s) => s.area === area);
@@ -143,7 +144,15 @@
     if (x > 0.97) at = null;
     let site = p.plan;
     if (p.storeId && st.length > 1 && r() < 0.045) { const o = st.filter((s) => s.id !== p.storeId); site = o[Math.floor(r() * o.length)].id; }
-    if (at !== null) p.seed = { at, storeId: site };
+    if (at !== null) {
+      const y = r();
+      /* 見本の位置の判定。ほとんどは店舗の近くで、一部に要確認を混ぜる */
+      const loc = y < 0.05 ? { loc: 'out', dist: 280 + Math.floor(r() * 1400), acc: 15 + Math.floor(r() * 30) }
+        : y < 0.08 ? { loc: 'low', dist: 140 + Math.floor(r() * 90), acc: 120 + Math.floor(r() * 150) }
+        : y < 0.1 ? { loc: 'none' }
+        : { loc: 'in', dist: 6 + Math.floor(r() * 60), acc: 8 + Math.floor(r() * 30) };
+      p.seed = Object.assign({ at, storeId: site }, loc);
+    }
   });
   const byId = Object.fromEntries(PEOPLE.map((p) => [p.id, p]));
 
@@ -173,6 +182,9 @@
       storeHidden: {},
       homeOver: {},
       contacted: {},
+      locChecked: {},
+      gpsOk: false,
+      gpsMode: 'real',
       reminded: {},
       done: {},
       notes: {},
@@ -185,6 +197,8 @@
       posted: { tasks: [], notices: [] },
       settings: {
         deadlines: { a: 615, b: 615, c: 615 },
+        gps: { a: true, b: true, c: true },
+        radius: { a: 100, b: 100, c: 100 },
         target: 'both',
         inner: '導入時に設定します',
         outer: '導入時に設定します'
@@ -192,7 +206,16 @@
     };
   }
 
-  function load() {
+  function fill(s) {
+    const f = fresh();
+    s.settings = s.settings || f.settings;
+    ['gps', 'radius', 'deadlines'].forEach((k) => { if (!s.settings[k]) s.settings[k] = f.settings[k]; });
+    ['locChecked', 'storeOver', 'storeHidden', 'storesAdded'].forEach((k) => { if (!s[k]) s[k] = f[k]; });
+    if (!s.gpsMode) s.gpsMode = 'real';
+    return s;
+  }
+  function load() { return fill(load0()); }
+  function load0() {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
@@ -203,7 +226,7 @@
         }
         if (s.v === 6) {
           const f = fresh();
-          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'persona', 'itaku', 'inv', 'stockTargets', 'invDraft', 'storeRequests', 'session', 'auth'].forEach((k) => { f[k] = s[k]; });
+          ['settings', 'storesAdded', 'storeOver', 'storeHidden', 'homeOver', 'persona', 'itaku', 'inv', 'stockTargets', 'invDraft', 'storeRequests', 'session', 'auth', 'gpsOk', 'gpsMode'].forEach((k) => { if (s[k] !== undefined) f[k] = s[k]; });
           return f;
         }
       }
@@ -239,7 +262,7 @@
     dayLabel: (d) => MONTH + '/' + d,
     S: load(),
     save() { try { localStorage.setItem(KEY, JSON.stringify(K.S)); } catch (e) { /* 無視 */ } K.publish(); },
-    reset() { const keep = K.S.persona, session = K.S.session, auth = K.S.auth; const it = K.S.itaku; K.S = fresh(); K.S.persona = keep; K.S.session = session; K.S.auth = auth; K.S.itaku = it; K.save(); },
+    reset() { const keep = K.S.persona, session = K.S.session, auth = K.S.auth; const it = K.S.itaku; K.S = fresh(); K.S.persona = keep; K.S.session = session; K.S.auth = auth; K.S.itaku = it; K._sm = null; K.save(); },
     onChange(fn) { listeners.push(fn); },
     now() {
       const c = K.S.clock;
@@ -296,6 +319,35 @@
     storeItaku(s) { return AREA_ITAKU[s.area]; },
     storesOf(id) { return K.stores().filter((s) => K.storeItaku(s) === id); },
     deadline(id) { return K.S.settings.deadlines[id]; },
+
+    /* 位置の確認。報告を押した瞬間だけ位置を取り、今日の店舗の登録位置からの距離で判定する。
+       結果を見られるのは本人と所属の委託先だけ。発注側へ渡す feed には入れない */
+    gpsOn(id) { return !!K.S.settings.gps[id]; },
+    radius(id) { return K.S.settings.radius[id] || 100; },
+    distanceM(aLat, aLng, bLat, bLng) {
+      const R = 6371000, t = (x) => x * Math.PI / 180;
+      const dLat = t(bLat - aLat), dLng = t(bLng - aLng);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(t(aLat)) * Math.cos(t(bLat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    },
+    judgeLoc(pos, store, r) {
+      if (!pos) return { loc: 'none' };
+      if (!store || store.lat == null) return { loc: 'nostore', acc: Math.round(pos.acc) };
+      const dist = K.distanceM(pos.lat, pos.lng, store.lat, store.lng), acc = Math.round(pos.acc || 0);
+      if (dist <= r) return { loc: 'in', dist: Math.round(dist), acc };
+      /* 誤差を含めると範囲に届くときは、離れていると決めつけずに「精度が低い」とする */
+      if (acc > 30 && dist - acc <= r) return { loc: 'low', dist: Math.round(dist), acc };
+      return { loc: 'out', dist: Math.round(dist), acc };
+    },
+    locInfo(x) {
+      if (!x || !x.loc) return null;
+      const m = (d) => d == null ? '' : (d >= 1000 ? (d / 1000).toFixed(1) + 'km' : Math.round(d) + 'm');
+      if (x.loc === 'in') return { pill: 'ok', short: '店舗の近く', detail: '店舗から約' + m(x.dist), check: false };
+      if (x.loc === 'out') return { pill: 'warn', short: '要確認（店舗から離れている）', detail: '店舗から約' + m(x.dist), check: true };
+      if (x.loc === 'low') return { pill: 'warn', short: '要確認（位置の精度が低い）', detail: '店舗から約' + m(x.dist) + '（誤差±' + m(x.acc) + '）', check: true };
+      if (x.loc === 'nostore') return { pill: 'idle', short: '店舗の位置が未登録', detail: '店舗の位置を登録すると判定できます', check: true };
+      return { pill: 'warn', short: '要確認（位置を取得できず）', detail: '位置の許可がない、または電波が届かない状態でした', check: true };
+    },
 
     /* 準備完了の報告。本人の画面以外では時刻を表示しない */
     report(p) {

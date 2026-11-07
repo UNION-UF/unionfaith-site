@@ -137,13 +137,16 @@
 .line-btn { color: var(--pine-ink); text-decoration: underline; font-size: 13px; font-weight: 400; margin-left: 8px; min-height: 32px; }
 .keep-note { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); color: var(--muted); font-size: 13px; }
 .report-hist { grid-template-columns: 62px minmax(0, 1fr) auto; }
+.rows .line .locd { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.punch .spin + small { margin-top: 6px; }
+.gps-points { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 14px; }
 
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="overlay"></div>
-<script src="assets/core.js?v=b1"></script>
+<script src="assets/core.js?v=b2"></script>
 <script>
 (function () {
   'use strict';
@@ -193,11 +196,19 @@
       '<div class="line"><span>今日の店舗</span><strong>' + esc(site ? site.name : '未選択') + (help ? ' <span class="pill warn">応援</span>' : '') + (r ? '' : '<button class="line-btn" data-sheet="store">' + (site ? '変更' : '選ぶ') + '</button>') + '</strong></div>' +
       '<div class="line"><span>予定</span><strong>' + esc(K.MARKS[p.today]) + '</strong></div>' +
       '<div class="line"><span>状態</span><span class="pill ' + st.pill + '">' + esc(st.label) + '</span></div>' +
+      (r && r.loc ? locLine(r) : '') +
       (todo.length ? '<button class="line" data-tab="todo"><span>やること</span><strong><span class="num">' + todo.length + '</span>件　締切 ' + esc(todo[0].due || 'なし') + '</strong></button>' : '') +
       '</section>';
-    h += '<p class="keep-note">報告の時刻はあなたの履歴にだけ表示します。位置情報は使いません。</p></main>';
-    h += '<div class="dock"><button class="punch in ' + (r ? '' : 'on') + '" id="reportBtn"' + (r ? ' disabled' : '') + '>' + (r ? '報告済み<small class="num">' + fmt(r.at) + '</small>' : '準備完了を報告') + '</button></div>';
+    h += '<p class="keep-note">' + (K.gpsOn(p.itaku) ? '位置は「準備完了を報告」を押した瞬間だけ確認します。結果を見られるのは、あなたと委託先だけです。' : '報告の時刻はあなたの履歴にだけ表示します。位置情報は使いません。') + '</p></main>';
+    const busy = V.busy;
+    h += '<div class="dock"><button class="punch in ' + (r || busy ? '' : 'on') + '" id="reportBtn"' + (r || busy ? ' disabled' : '') + '>' + (busy ? '<span class="spin"></span><small>位置を確認しています</small>' : r ? '報告済み<small class="num">' + fmt(r.at) + '</small>' : '準備完了を報告') + '</button></div>';
     return h;
+  }
+
+  function locLine(r) {
+    const li = K.locInfo(r);
+    if (!li) return '';
+    return '<div class="line"><span>位置の確認</span><strong><span class="pill ' + li.pill + '">' + esc(li.short) + '</span><span class="locd">' + esc(li.detail) + '</span></strong></div>';
   }
 
   function histView() {
@@ -290,11 +301,21 @@
     return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
       '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(now) + '</span>' + (K.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><span class="small muted">確認時刻の前後を試すときだけ、時刻を変えられます。</span><div class="jump-row">' + [[592, '09:52'], [616, '10:16']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (K.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
       '<div class="field"><span class="lab">スタッフ</span><div class="seg">' + [['me1', '常勤'], ['me2', '移動型']].map((o) => '<button data-persona="' + o[0] + '" aria-pressed="' + (K.S.persona === o[0]) + '">' + o[1] + '（' + esc(K.byId[o[0]].name) + '）</button>').join('') + '</div></div>' +
+      (K.gpsOn(K.me().itaku) ? '<div class="field"><span class="lab">報告するときの位置</span><div class="seg">' + [['real', '実際の位置'], ['in', '店舗の近く'], ['out', '離れている'], ['none', '取れない']].map((o) => '<button data-gpsmode="' + o[0] + '" aria-pressed="' + (K.S.gpsMode === o[0]) + '">' + o[1] + '</button>').join('') + '</div>' +
+        (K.S.gpsMode === 'real' ? '<span class="small muted">見本の店舗は山口県などにあります。今いる場所で「店舗の近く」を試すときは、下のボタンで今いる場所を今日の店舗の位置にしてください。</span><button class="btn" id="setGeo">' + ic('pin', 18) + '今いる場所を今日の店舗の位置にする</button>' : '<span class="small muted">「実際の位置」以外は、試しの結果を使います。</span>') + '</div>' : '') +
+      (V.err && V.sheet === 'demo' ? '<div class="err">' + esc(V.err) + '</div>' : '') +
       '<a class="btn" href="itaku/" style="text-decoration:none">' + ic('users', 18) + '委託先の画面を開く</a>' +
       '<a class="btn" href="client/" style="text-decoration:none">' + ic('store', 18) + '発注側の画面を開く</a>' +
       '<button class="btn" id="logout">ログアウト</button><button class="btn" data-reset="1">最初の状態に戻す</button>' +
       '<p class="proto">テストB ／ データは架空のサンプルで、この端末の中だけに保存します。</p>' +
       '<button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+
+  function gpsSheet() {
+    return '<div class="sheet-back"></div><div class="sheet" role="dialog" aria-label="位置情報の使い方"><h2>位置情報の使い方</h2>' +
+      '<ul class="gps-points"><li>店舗の近くで報告したかを確かめるため、<b>「準備完了を報告」を押した瞬間だけ</b>位置を確認します。</li><li>勤務中や休みの日に、位置を追いかけることはありません。</li><li>結果を見られるのは、<b>あなたと所属する委託先だけ</b>です。発注側には届きません。</li></ul>' +
+      '<p class="small muted">このあとスマホの確認画面が出たら「許可」を選んでください。許可しなくても報告はでき、委託先に確認の印が付きます。</p>' +
+      '<button class="btn primary" id="gpsAgree" style="min-height:54px">わかりました</button><button class="btn" data-close="1">今はやめる</button></div>';
   }
 
   function storeSheet() {
@@ -389,6 +410,7 @@
     if (V.snack) h += '<div class="snack' + (V.tab === 'home' ? '' : ' low') + '" role="status"><span>' + esc(V.snack.text) + '</span>' + (V.snack.undo ? '<button id="undoBtn">取り消す</button>' : '') + '</div>';
     if (V.sheet === 'demo') h += demoSheet();
     if (V.sheet === 'store') h += storeSheet();
+    if (V.sheet === 'gps') h += gpsSheet();
     $('overlay').innerHTML = h;
   }
   let snackT, bannerT;
@@ -398,15 +420,40 @@
     snackT = setTimeout(() => { V.snack = null; renderOverlay(); }, undo ? 5000 : 2800);
     renderOverlay();
   }
-  function doReport() {
+  /* 押した瞬間の位置。試作では試しの結果も選べる */
+  function locate(store) {
+    const mode = K.S.gpsMode;
+    if (mode !== 'real') {
+      return new Promise((res) => setTimeout(() => {
+        if (mode === 'none' || !store || store.lat == null) { res(mode === 'none' ? null : { lat: 0, lng: 0, acc: 0 }); return; }
+        if (mode === 'in') res({ lat: store.lat + 0.00028, lng: store.lng + 0.0002, acc: 18 });
+        else res({ lat: store.lat + 0.0082, lng: store.lng - 0.0035, acc: 22 });
+      }, 700));
+    }
+    return new Promise((res) => {
+      if (!navigator.geolocation) { res(null); return; }
+      navigator.geolocation.getCurrentPosition((pos) => res({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy }), () => res(null), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    });
+  }
+  async function doReport() {
     const p = me(), s = K.todayStore(p);
     if (!s) { V.reportAfterPick = true; V.sheet = 'store'; V.err = ''; renderOverlay(); return; }
+    const gps = K.gpsOn(p.itaku);
+    if (gps && !K.S.gpsOk) { V.sheet = 'gps'; renderOverlay(); return; }
     const at = K.nowMin();
-    K.S.reports[p.id] = { at, storeId: s.id };
+    let loc = {};
+    if (gps) {
+      V.busy = true; render();
+      const pos = await locate(s);
+      loc = K.judgeLoc(pos, s, K.radius(p.itaku));
+      V.busy = false;
+    }
+    K.S.reports[p.id] = Object.assign({ at, storeId: s.id }, loc);
     K.save();
     try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) { /* 無視 */ }
     render();
-    snack(s.name + 'の準備完了を報告しました', true);
+    const li = K.locInfo(loc);
+    snack(s.name + 'の準備完了を報告しました' + (li ? '（' + li.short.replace(/^要確認（|）$/g, '') + '）' : ''), true);
   }
 
   document.addEventListener('submit', (e) => {
@@ -442,7 +489,19 @@
     }
     if (d.persona) { K.S.persona = d.persona; K.S.session = d.persona; K.save(); V.sheet = 'demo'; render(); return; }
     if (d.reset) { K.reset(); V.sheet = null; V.tab = 'home'; V.sub = null; V.snack = null; V.banner = null; render(); snack('最初の状態に戻しました'); return; }
-    if (b.id === 'reportBtn') { doReport(); return; }
+    if (b.id === 'reportBtn') { if (!V.busy) doReport(); return; }
+    if (b.id === 'gpsAgree') { K.S.gpsOk = true; K.save(); V.sheet = null; renderOverlay(); doReport(); return; }
+    if (d.gpsmode) { K.S.gpsMode = d.gpsmode; K.save(); V.err = ''; renderOverlay(); return; }
+    if (b.id === 'setGeo') {
+      V.err = '';
+      const st = K.todayStore(me());
+      if (!navigator.geolocation || !st) { V.err = 'この端末では位置情報を使えません。'; renderOverlay(); return; }
+      navigator.geolocation.getCurrentPosition((pos) => {
+        K.updateStore(st.id, { lat: pos.coords.latitude, lng: pos.coords.longitude }); K._sm = null;
+        V.sheet = null; render(); snack('今いる場所を' + st.name + 'の位置にしました');
+      }, () => { V.err = '位置を取得できませんでした。スマホの設定で、ブラウザの位置情報を許可してください。'; renderOverlay(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+      return;
+    }
     if (b.id === 'undoBtn') { delete K.S.reports[me().id]; K.save(); V.snack = null; render(); return; }
     if (d.open) { V.sub = d.open; V.err = ''; V.draft = {}; window.scrollTo(0, 0); render(); return; }
     if (d.submit) {
