@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#17305C">
+<link rel="apple-touch-icon" href="../assets/icon-180.png">
+<title>キョウモ 外回り 管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="../assets/base.css?v=f1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+.side { background: var(--pine-deep); color: var(--on-deep); padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; position: sticky; top: 0; z-index: 8; }
+.side .brand { font-size: 17px; }
+.side .role { font-size: 12px; color: var(--on-deep-muted); }
+.navs { order: 3; flex: 1 0 100%; display: flex; overflow-x: auto; gap: 2px; scrollbar-width: none; min-width: 0; }
+.nav { padding: 8px 12px; color: var(--on-deep-muted); min-height: 42px; white-space: nowrap; font-size: 14px; border-bottom: 3px solid transparent; }
+.nav[aria-current="page"] { color: var(--on-deep); font-weight: 700; border-bottom-color: var(--on-deep); }
+.foot { margin-left: auto; }
+.proto-btn { color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .4); border-radius: 4px; padding: 3px 10px; font-size: 12px; min-height: 34px; }
+.content { max-width: 1100px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 2.6vw, 28px); }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.meta { color: var(--muted); font-size: 13px; }
+.scope { background: var(--pine-soft); color: var(--pine-ink); padding: 10px 14px; font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.stat { background: var(--surface); padding: 11px 14px; min-width: 0; }
+.stat small { display: block; color: var(--muted); font-size: 12px; }
+.stat b { font-size: 26px; font-weight: 700; line-height: 1.2; }
+.stat em { font-style: normal; font-size: 13px; color: var(--muted); margin-left: 3px; }
+@media (max-width: 640px) { .stats { grid-template-columns: repeat(6, minmax(0, 1fr)); } .stat { grid-column: span 2; } .stat:nth-child(n+4) { grid-column: span 3; } }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 6px 13px; font-size: 13px; min-height: 38px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); font-weight: 700; }
+.sel-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sel-row select, .sel-row input { border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; background: var(--surface); min-height: 42px; font-size: 16px; max-width: 100%; }
+.sel-row input { flex: 1 1 170px; min-width: 0; }
+.list { background: var(--surface); border: 1px solid var(--line); }
+.prow { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr) auto; gap: 6px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); width: 100%; text-align: left; }
+.prow:first-child { border-top: 0; }
+.prow small { display: block; color: var(--muted); font-size: 12px; }
+.prow .where { overflow-wrap: anywhere; }
+.prow .cnt { color: var(--muted); font-size: 13px; white-space: nowrap; text-align: right; }
+@media (max-width: 640px) { .prow { grid-template-columns: minmax(0, 1fr) auto; } .prow .where { grid-column: 1 / -1; grid-row: 2; } }
+.pill.in { background: var(--pine-soft); color: var(--pine-ink); }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.block h2 { font-size: 15px; font-weight: 700; }
+.rep { padding: 12px 14px; border-top: 1px solid var(--line); }
+.rep:first-child { border-top: 0; }
+.rep .h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.rep .h b { overflow-wrap: anywhere; }
+.rep .by { color: var(--muted); font-size: 13px; }
+.rep .d, .tl .d { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.rep .note-body, .tl .note-body { color: var(--ink); }
+.tags { margin-top: 2px; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: var(--pine-soft); color: var(--pine-ink); margin: 2px 4px 0 0; }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; padding: 8px 12px; background: var(--sunken); white-space: nowrap; }
+td { padding: 9px 12px; border-top: 1px solid var(--line); white-space: nowrap; }
+tr.cold td { background: var(--amber-soft); }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.note { color: var(--muted); font-size: 13px; }
+.empty { color: var(--muted); padding: 12px 14px; font-size: 14px; }
+.tl { list-style: none; margin: 0; padding: 0; }
+.tl li { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.tl li:first-child { border-top: 0; }
+.tl .t { font-weight: 700; }
+.tl .what { font-weight: 700; overflow-wrap: anywhere; }
+.tl .stay { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+.loc { display: inline-block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.wide { max-width: 720px; }
+#pmap { height: 260px; border: 1px solid var(--line); border-radius: 4px; }
+.mapnote { font-size: 12px; color: var(--muted); }
+.pnum { background: var(--pine); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; font-size: 12px; font-weight: 700; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--pine); }
+.pnum.w { background: #7A4E00; box-shadow: 0 0 0 1px #7A4E00; }
+.taglist { display: flex; flex-wrap: wrap; gap: 6px; }
+.taglist span { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 16px; padding: 3px 4px 3px 12px; font-size: 14px; }
+.taglist button { width: 30px; height: 30px; display: grid; place-items: center; color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.sheet.wide { max-width: 720px; }
+</style>
+</head>
+<body>
+<aside class="side" id="side"></aside>
+<main class="content" id="content"></main>
+<div id="overlay"></div>
+<div id="toast" role="status" hidden style="position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#1B2433;color:#fff;padding:10px 16px;border-radius:6px;z-index:60;font-size:14px"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="../assets/field.js?v=f1"></script>
+<script>
+(function () {
+  'use strict';
+  const F = window.Field, esc = F.esc, fmt = F.fmt, ic = F.icon;
+  const $ = (id) => document.getElementById(id);
+  const V = { page: 'today', area: 'all', q: '', range: 'today', person: 'all', tag: 'all', rArea: 'all', sArea: 'all', sSort: 'old', sheet: null, pid: null, newDid: '', newWho: '' };
+  let map = null, toastT, shown = null;
+  function toast(m) { const t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2400); }
+  const viewerName = () => F.S.viewer === 'v' ? '自社の管理者' : F.orgName(F.S.viewer) + 'の管理者';
+  const detailPeople = () => F.PEOPLE.filter((p) => F.detail(p));
+  const reportPeople = () => F.PEOPLE.filter((p) => F.reportsOK(p));
+  const STATUS_SORT = { in: 0, work: 1, active: 2, before: 3, end: 4, off: 5 };
+
+  function side() {
+    const nav = [['today', '今日の動き'], ['reports', '訪問報告'], ['stores', '店舗の訪問状況'], ['set', '設定']];
+    $('side').innerHTML = '<span class="brand">キョウモ 外回り</span><span class="role">管理画面 ／ ' + esc(viewerName()) + '</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-sheet="demo">試作</button></div>';
+  }
+  function areaChips(key, list) {
+    const areas = F.AREAS.filter((a) => list.some((x) => x.area === a.id));
+    return '<div class="chips" role="group" aria-label="エリア"><button class="chip" data-farea="all" data-key="' + key + '" aria-pressed="' + (V[key] === 'all') + '">全エリア</button>' + areas.map((a) => '<button class="chip" data-farea="' + a.id + '" data-key="' + key + '" aria-pressed="' + (V[key] === a.id) + '">' + a.name + '</button>').join('') + '</div>';
+  }
+
+  /* 今日の動き */
+  function todayPage() {
+    const all = detailPeople(), q = V.q.trim().replace(/\s/g, '');
+    const list = all.filter((p) => (V.area === 'all' || p.area === V.area) && (!q || p.name.replace(/\s/g, '').includes(q)));
+    const sts = list.map((p) => ({ p, st: F.status(p), ev: F.events(p, F.TODAY) || [] }));
+    const c = (k) => sts.filter((x) => k.includes(x.st.key)).length;
+    const visitsToday = sts.reduce((n, x) => n + F.visits(x.ev).length, 0);
+    sts.sort((a, b) => STATUS_SORT[a.st.key] - STATUS_SORT[b.st.key] || a.p.id.localeCompare(b.p.id, 'ja', { numeric: true }));
+    let h = '<div class="head"><h1>今日の動き</h1><span class="meta num">' + F.dayLabel(F.TODAY) + ' ' + fmt(F.now()) + (F.isTest() ? '（テスト時刻）' : '') + '</span></div>';
+    h += '<p class="scope">' + (F.S.viewer === 'v' ? '自社の社員だけを表示します。委託先の人は「訪問報告」に報告だけが表示され、時刻と位置は表示しません。' : esc(F.orgName(F.S.viewer)) + 'の人だけを表示します。他社の人は表示しません。') + '</p>';
+    h += '<div class="stats"><div class="stat"><small>稼働中</small><b class="num">' + c(['active', 'in', 'work']) + '</b><em>人</em></div><div class="stat"><small>入店中</small><b class="num">' + c(['in']) + '</b><em>人</em></div><div class="stat"><small>作業中</small><b class="num">' + c(['work']) + '</b><em>人</em></div><div class="stat"><small>稼働終了</small><b class="num">' + c(['end']) + '</b><em>人</em></div><div class="stat"><small>今日の訪問</small><b class="num">' + visitsToday + '</b><em>件</em></div></div>';
+    h += areaChips('area', all) + '<div class="sel-row"><input id="q" type="search" placeholder="名前で探す" value="' + esc(V.q) + '" aria-label="名前で探す"></div>';
+    h += '<section class="list">' + (sts.map((x) => {
+      const p = x.p, st = x.st;
+      let where = '';
+      if (st.key === 'in') where = esc((F.store(st.storeId) || {}).name || '') + ' <span class="meta num">' + fmt(st.since) + '〜（' + F.dur(F.nowMin() - st.since) + '）</span>';
+      else if (st.key === 'work') where = esc(st.place) + ' <span class="meta num">' + fmt(st.since) + '〜</span>';
+      else if (st.since != null) where = '<span class="meta num">最終の記録 ' + fmt(st.since) + '</span>';
+      return '<button class="prow" data-person="' + p.id + '"><div><b>' + esc(p.name) + '</b><small>' + esc(p.role) + ' ／ ' + esc(F.areaName(p.area)) + '</small></div><div class="where"><span class="pill ' + st.pill + '">' + st.label + '</span> ' + where + '</div><span class="cnt num">訪問 ' + F.visits(x.ev).length + '件</span></button>';
+    }).join('') || '<p class="empty">条件に合う人はいません。</p>') + '</section>';
+    return h;
+  }
+
+  /* 一人の一日 */
+  function personSheet() {
+    const p = F.byId[V.pid], ev = F.events(p, F.TODAY) || [], st = F.status(p), sp = F.span(ev, true), vs = F.visits(ev);
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet wide" role="dialog" aria-label="' + esc(p.name) + 'さんの今日"><h2>' + esc(p.name) + '</h2><p class="meta">' + esc(F.orgName(p.org)) + ' ／ ' + esc(p.role) + ' ／ ' + esc(F.areaName(p.area)) + '</p>' +
+      '<div class="row"><span><span class="pill ' + st.pill + '">' + st.label + '</span> <span class="meta num">' + (sp ? '稼働 ' + fmt(sp.from) + '〜' + (st.key === 'end' ? fmt(sp.to) : '') : '') + ' ／ 訪問 ' + vs.length + '件</span></span><button class="btn" id="csvPerson">' + ic('dl', 16) + 'CSV</button></div>' +
+      '<div id="pmap"></div><p class="mapnote">' + (F.S.settings.gps ? 'ボタンを押した瞬間の位置です。位置が取れなかった入店は、店舗の登録位置で表示します。番号は記録の順番で、移動の経路は記録していません。' : '位置情報を使わない設定のため、入店した店舗の登録位置を表示しています。番号は訪問の順番です。') + '</p>' +
+      F.timeline(ev) + '<button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+  function drawMap() {
+    const el = $('pmap');
+    if (!el || !window.L) { if (el) el.innerHTML = '<p class="empty">地図を読み込めませんでした。</p>'; return; }
+    const p = F.byId[V.pid], ev = F.events(p, F.TODAY) || [];
+    const pts = [];
+    ev.forEach((e, i) => {
+      let ll = null;
+      /* 位置の記録があればそれを使い、なければ入店した店舗の登録位置を使う */
+      if (F.S.settings.gps && e.loc && e.loc.lat != null) ll = [e.loc.lat, e.loc.lng];
+      else if (e.type === 'in') { const s = F.store(e.storeId); if (s && s.lat != null) ll = [s.lat, s.lng]; }
+      if (ll) pts.push({ ll, e, n: pts.length + 1 });
+    });
+    map = L.map(el, { zoomControl: true, attributionControl: true });
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>' }).addTo(map);
+    if (!pts.length) { const c = F.CENTER[p.area]; map.setView([c.lat, c.lng], 11); return; }
+    pts.forEach((x) => {
+      const icon = L.divIcon({ className: '', html: '<div class="pnum' + (x.e.type === 'work' || x.e.type === 'workend' ? ' w' : '') + '">' + x.n + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+      const label = { start: '稼働スタート', end: '稼働終了', in: '入店', out: '退店', work: '作業開始', workend: '作業終了' }[x.e.type] + ' ' + fmt(x.e.t) + (F.placeOf(x.e) ? ' ' + F.placeOf(x.e) : '');
+      L.marker(x.ll, { icon }).addTo(map).bindPopup(esc(label));
+    });
+    const b = L.latLngBounds(pts.map((x) => x.ll));
+    map.fitBounds(b.pad(0.25), { maxZoom: 15 });
+  }
+
+  /* 訪問報告 */
+  function rangeDays() {
+    const t = F.TODAY;
+    if (V.range === 'today') return [t];
+    if (V.range === 'yesterday') return t > 1 ? [t - 1] : [];
+    if (V.range === 'week') { const a = []; for (let d = t; d >= Math.max(1, t - 6); d--) a.push(d); return a; }
+    const a = []; for (let d = t; d >= 1; d--) a.push(d); return a;
+  }
+  function reportRows() {
+    const rows = [];
+    rangeDays().forEach((day) => {
+      reportPeople().forEach((p) => {
+        if (V.person !== 'all' && p.id !== V.person) return;
+        if (V.rArea !== 'all' && p.area !== V.rArea) return;
+        F.visits(F.events(p, day)).forEach((v) => {
+          if (v.tout == null || !v.rep) return;
+          if (V.tag !== 'all' && !v.rep.did.includes(V.tag)) return;
+          rows.push({ day, p, v, detail: F.detail(p) });
+        });
+      });
+    });
+    rows.sort((a, b) => b.day - a.day || (b.detail && a.detail ? b.v.tin - a.v.tin : 0) || a.p.id.localeCompare(b.p.id, 'ja', { numeric: true }));
+    return rows;
+  }
+  function reportsPage() {
+    const rows = reportRows(), show = rows.slice(0, 60), people = reportPeople();
+    let h = '<div class="head"><h1>訪問報告</h1><button class="btn" id="csvReports">' + ic('dl', 16) + 'CSVで保存</button></div>';
+    h += '<p class="scope">' + (F.S.viewer === 'v' ? '委託先の人の報告は、日付・店舗・内容だけを表示します。時刻と滞在時間は委託先の管理者だけが見られます。' : esc(F.orgName(F.S.viewer)) + 'の人の報告だけを表示します。') + '</p>';
+    h += '<div class="chips" role="group" aria-label="期間">' + [['today', '今日'], ['yesterday', '昨日'], ['week', '直近7日'], ['month', '今月']].map((o) => '<button class="chip" data-range="' + o[0] + '" aria-pressed="' + (V.range === o[0]) + '">' + o[1] + '</button>').join('') + '</div>';
+    h += '<div class="sel-row"><select id="fPerson" aria-label="人で絞り込む"><option value="all">すべての人</option>' + people.map((p) => '<option value="' + p.id + '"' + (V.person === p.id ? ' selected' : '') + '>' + esc(p.name) + '（' + esc(F.orgName(p.org)) + '）</option>').join('') + '</select><select id="fTag" aria-label="内容で絞り込む"><option value="all">すべての内容</option>' + F.didList().map((x) => '<option' + (V.tag === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><select id="fArea" aria-label="エリアで絞り込む"><option value="all">全エリア</option>' + F.AREAS.map((a) => '<option value="' + a.id + '"' + (V.rArea === a.id ? ' selected' : '') + '>' + a.name + '</option>').join('') + '</select></div>';
+    h += '<section class="list">' + (show.map((r) => {
+      const s = F.store(r.v.storeId) || {};
+      return '<div class="rep"><div class="h"><b>' + esc(s.name || '') + ' <span class="meta">' + esc(s.pref || '') + '</span></b><span class="by num">' + F.MONTH + '/' + r.day + (r.detail ? ' ' + fmt(r.v.tin) + '〜' + fmt(r.v.tout) + '（' + F.dur(r.v.tout - r.v.tin) + '）' : '') + '</span></div><div class="by">' + esc(r.p.name) + ' ／ ' + esc(F.orgName(r.p.org)) + ' ／ ' + esc(r.p.role) + '</div>' + F.repHtml(r.v.rep) + '</div>';
+    }).join('') || '<p class="empty">この条件の報告はありません。</p>') + '</section>';
+    h += '<p class="note num">' + rows.length + '件中 ' + show.length + '件を表示' + (rows.length > show.length ? '（すべてはCSVで確認できます）' : '') + '</p>';
+    return h;
+  }
+
+  /* 店舗の訪問状況 */
+  function storesPage() {
+    const stats = {};
+    F.stores().forEach((s) => { stats[s.id] = { s, n: 0, last: null, by: null }; });
+    reportPeople().forEach((p) => {
+      for (let d = 1; d <= F.TODAY; d++) F.visits(F.events(p, d)).forEach((v) => {
+        const x = stats[v.storeId]; if (!x) return;
+        x.n++; if (x.last == null || d >= x.last) { x.last = d; x.by = p; }
+      });
+    });
+    let rows = Object.values(stats).filter((x) => V.sArea === 'all' || x.s.area === V.sArea);
+    rows.sort((a, b) => V.sSort === 'old' ? ((a.last || 0) - (b.last || 0) || a.n - b.n) : (b.n - a.n));
+    const none = rows.filter((x) => !x.n).length;
+    let h = '<div class="head"><h1>店舗の訪問状況</h1><span class="meta">' + F.MONTH + '月1日〜今日</span></div>';
+    h += '<p class="scope">しばらく訪問していない店舗を見つけるための一覧です。今月まだ訪問のない店舗は ' + none + ' 店舗です。</p>';
+    h += '<div class="chips">' + [['all', '全エリア']].concat(F.AREAS.map((a) => [a.id, a.name])).map((o) => '<button class="chip" data-sarea="' + o[0] + '" aria-pressed="' + (V.sArea === o[0]) + '">' + o[1] + '</button>').join('') + '</div>';
+    h += '<div class="sel-row"><select id="sSort" aria-label="並び順"><option value="old"' + (V.sSort === 'old' ? ' selected' : '') + '>最後の訪問が古い順</option><option value="many"' + (V.sSort === 'many' ? ' selected' : '') + '>訪問が多い順</option></select></div>';
+    h += '<div class="tablebox"><table><thead><tr><th>店舗</th><th>県</th><th>今月の訪問</th><th>最後の訪問</th><th>最後に訪問した人</th></tr></thead><tbody>' + rows.map((x) => '<tr' + (x.n ? '' : ' class="cold"') + '><td><b>' + esc(x.s.name) + '</b></td><td>' + esc(x.s.pref || '—') + '</td><td class="num">' + x.n + '回</td><td class="num">' + (x.last ? F.MONTH + '/' + x.last : 'まだなし') + '</td><td>' + (x.by ? esc(x.by.name) + '（' + esc(F.orgName(x.by.org)) + '）' : '—') + '</td></tr>').join('') + '</tbody></table></div>';
+    return h;
+  }
+
+  function setPage() {
+    const s = F.S.settings;
+    const tagEdit = (key, list, ph) => '<div class="taglist">' + list.map((x, i) => '<span>' + esc(x) + '<button data-del="' + key + '" data-i="' + i + '" aria-label="' + esc(x) + 'を削除">' + ic('x', 16) + '</button></span>').join('') + '</div><div class="sel-row"><input id="new-' + key + '" placeholder="' + ph + '"><button class="btn" data-add="' + key + '">追加</button></div>';
+    return '<div class="head"><h1>設定</h1></div>' +
+      '<section class="block"><h2>位置情報</h2><div class="seg" style="max-width:520px"><button data-gps="0" aria-pressed="' + !s.gps + '">使わない</button><button data-gps="1" aria-pressed="' + s.gps + '">ボタンを押した瞬間だけ使う</button></div><p class="note">移動中の経路は記録しません。Webアプリは、画面を閉じている間の位置を取れません。使う場合は、本人への説明と同意、必要な許可を先に整えてください。</p></section>' +
+      '<section class="block"><h2>報告の項目「何をしましたか」</h2>' + tagEdit('did', F.didList(), '例: アンケート回収') + '</section>' +
+      '<section class="block"><h2>報告の項目「だれと」</h2>' + tagEdit('who', F.whoList(), '例: エリア担当') + '</section>' +
+      '<section class="block"><h2>見られる範囲</h2><div class="tablebox"><table><thead><tr><th>記録した人</th><th>所属先の管理者</th><th>発注側（自社）の管理者</th></tr></thead><tbody><tr><td>自社の社員</td><td>すべて</td><td>すべて（同じ会社）</td></tr><tr><td>委託先の人</td><td>すべて</td><td>訪問報告のみ（日付・店舗・内容）<br>時刻、滞在時間、位置、いまの状態は表示しない</td></tr></tbody></table></div><p class="note">本人は自分の記録だけを見られます。ほかの人の報告は表示しません。</p></section>';
+  }
+
+  function demoSheet() {
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
+      '<div class="field"><span class="lab">誰として見るか</span><div class="seg">' + F.ORGS.map((o) => '<button data-viewer="' + o.id + '" aria-pressed="' + (F.S.viewer === o.id) + '">' + esc(o.name) + '</button>').join('') + '</div><span class="small muted">委託先として見ると、その会社の人だけが表示されます。</span></div>' +
+      '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(F.now()) + '</span>' + (F.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[540, '09:00'], [690, '11:30'], [900, '15:00']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (F.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
+      '<a class="btn" href="../" style="text-decoration:none">' + ic('users', 18) + '外回りの人の画面を開く</a><button class="btn" data-reset="1">最初の状態に戻す</button>' +
+      '<p class="small muted">外回り版の試作です。データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+
+  function render() {
+    side();
+    $('content').innerHTML = ({ today: todayPage, reports: reportsPage, stores: storesPage, set: setPage }[V.page])();
+    F.hydratePhotos($('content'));
+    renderOverlay();
+  }
+  function renderOverlay() {
+    if (map) { map.remove(); map = null; }
+    const still = (x) => (V.sheet === shown ? x.replace(/<div class="sheet( wide)?" role/, (m) => m.replace('<div ', '<div style="animation:none" ')) : x);
+    if (V.sheet === 'person') { $('overlay').innerHTML = still(personSheet()); F.hydratePhotos($('overlay')); setTimeout(drawMap, 30); }
+    else if (V.sheet === 'demo') $('overlay').innerHTML = still(demoSheet());
+    else $('overlay').innerHTML = '';
+    shown = V.sheet;
+  }
+  const csvHead = ['日付', '氏名', '所属', '役割', '店舗', '県', '入店', '退店', '滞在(分)', '何をした', 'だれと', '内容'];
+  const csvRow = (day, p, v, detail) => { const s = F.store(v.storeId) || {}; return [F.YEAR + '/' + F.MONTH + '/' + day, p.name, F.orgName(p.org), p.role, s.name || '', s.pref || '', detail ? fmt(v.tin) : '', detail && v.tout != null ? fmt(v.tout) : '', detail && v.tout != null ? v.tout - v.tin : '', v.rep ? v.rep.did.join('・') : '', v.rep ? v.rep.who.join('・') : '', v.rep ? v.rep.note : '']; };
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, [data-close]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.page) { V.page = d.page; window.scrollTo(0, 0); render(); return; }
+    if (d.farea) { V[d.key] = d.farea; render(); return; }
+    if (d.person) { V.pid = d.person; V.sheet = 'person'; renderOverlay(); return; }
+    if (d.close) { V.sheet = null; renderOverlay(); return; }
+    if (d.sheet) { V.sheet = d.sheet; renderOverlay(); return; }
+    if (d.range) { V.range = d.range; render(); return; }
+    if (d.sarea) { V.sArea = d.sarea; render(); return; }
+    if (d.gps) { F.S.settings.gps = d.gps === '1'; F.save(); render(); toast(F.S.settings.gps ? '位置情報を使う設定にしました' : '位置情報を使わない設定にしました'); return; }
+    if (d.del) { F.S.settings[d.del].splice(+d.i, 1); F.save(); render(); return; }
+    if (d.add) { const el = $('new-' + d.add), v = el.value.trim(); if (!v) return; if (!F.S.settings[d.add].includes(v)) F.S.settings[d.add].push(v); F.save(); render(); toast('追加しました'); return; }
+    if (d.viewer) { F.S.viewer = d.viewer; F.save(); V.person = 'all'; V.sheet = null; render(); toast(viewerName() + 'として表示しています'); return; }
+    if (d.jump) { if (d.jump === 'real') F.setReal(); else F.setNow(+d.jump); V.sheet = null; render(); return; }
+    if (d.reset) { F.reset(); V.sheet = null; render(); toast('最初の状態に戻しました'); return; }
+    if (b.id === 'csvReports') { F.csvDownload('訪問報告.csv', [csvHead].concat(reportRows().map((r) => csvRow(r.day, r.p, r.v, r.detail)))); return; }
+    if (b.id === 'csvPerson') { const p = F.byId[V.pid]; F.csvDownload(p.name.replace(/\s/g, '') + '_' + F.MONTH + '月' + F.TODAY + '日.csv', [csvHead].concat(F.visits(F.events(p, F.TODAY)).map((v) => csvRow(F.TODAY, p, v, true)))); return; }
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target.id !== 'q') return;
+    V.q = e.target.value; const pos = e.target.selectionStart; render();
+    const n = $('q'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (err) { /* 無視 */ } }
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.id === 'fPerson') { V.person = t.value; render(); }
+    if (t.id === 'fTag') { V.tag = t.value; render(); }
+    if (t.id === 'fArea') { V.rArea = t.value; render(); }
+    if (t.id === 'sSort') { V.sSort = t.value; render(); }
+  });
+  const formFocused = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName); };
+  let last = F.nowMin();
+  setInterval(() => { const m = F.nowMin(); if (m !== last) { last = m; if (!V.sheet && !formFocused()) render(); } }, 1000);
+  F.onChange(() => { if (!formFocused()) { if (V.sheet === 'person') renderOverlay(); else if (!V.sheet) render(); } });
+  render();
+})();
+</script>
+</body>
+</html>

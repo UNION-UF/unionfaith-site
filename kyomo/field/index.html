@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#17305C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="外回り">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>キョウモ 外回り</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/base.css?v=f1">
+<style>
+.top { background: var(--pine-deep); color: var(--on-deep); padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); position: sticky; top: 0; z-index: 5; }
+.top .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; max-width: 560px; margin: 0 auto; }
+.top .who { font-size: 13px; color: var(--on-deep-muted); line-height: 1.4; }
+.top .who b { display: block; color: var(--on-deep); font-size: 15px; }
+.top .clock { font-size: 26px; font-weight: 700; line-height: 1; text-align: right; }
+.top .clock small { display: block; font-size: 12px; font-weight: 400; color: var(--on-deep-muted); margin-top: 4px; }
+.proto-btn { color: var(--on-deep); border: 1px solid rgba(255, 255, 255, .4); border-radius: 4px; padding: 3px 9px; font-size: 12px; min-height: 32px; margin-left: 8px; }
+.main { max-width: 560px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) calc(96px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.state { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 4px; }
+.state .lab { font-size: 12px; color: var(--muted); }
+.state .big { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; line-height: 1.35; }
+.state .sub { font-size: 14px; color: var(--muted); }
+.acts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.two-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.act { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; border-radius: 8px; font-size: 18px; font-weight: 700; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.act.lead { background: var(--pine); color: var(--on-pine); border-color: var(--pine); min-height: 78px; font-size: 21px; }
+.act.quiet { min-height: 46px; font-size: 15px; font-weight: 400; color: var(--muted); }
+.warnbox { background: var(--amber-soft); color: var(--amber-ink); padding: 10px 12px; border-radius: 6px; font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
+.sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sum div { background: var(--surface); padding: 9px 12px; min-width: 0; }
+.sum small { display: block; color: var(--muted); font-size: 12px; }
+.sum b { font-size: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 14px; }
+.card h2 { font-size: 15px; font-weight: 700; padding: 10px 0 4px; }
+.tl { list-style: none; margin: 0; padding: 0; }
+.tl li { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.tl li:first-child { border-top: 0; }
+.tl .t { font-weight: 700; }
+.tl .what { font-weight: 700; overflow-wrap: anywhere; }
+.tl .stay { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+.tl .d { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.tl .note-body { color: var(--ink); }
+.loc { display: inline-block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tags { margin-top: 2px; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: var(--pine-soft); color: var(--pine-ink); margin: 2px 4px 0 0; }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.empty { color: var(--muted); padding: 12px 0; font-size: 14px; }
+.privacy { font-size: 13px; color: var(--muted); padding: 0 2px; }
+.pill.in { background: var(--pine-soft); color: var(--pine-ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 18px; padding: 6px 14px; font-size: 14px; min-height: 40px; }
+.chip[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); font-weight: 700; }
+.pick { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 11px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); min-height: 52px; }
+.pick small { color: var(--muted); white-space: nowrap; }
+.pick-list { display: grid; gap: 6px; }
+.sheet .meta { font-size: 14px; color: var(--muted); }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 6; }
+.tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 5px; font-size: 12px; color: var(--muted); min-height: 56px; }
+.tabs button[aria-current="page"] { color: var(--pine-ink); font-weight: 700; }
+.snack { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(70px + env(safe-area-inset-bottom, 0px)); background: #1B2433; color: #fff; padding: 8px 8px 8px 14px; border-radius: 6px; display: flex; gap: 10px; align-items: center; z-index: 50; width: max-content; max-width: calc(100% - 32px); font-size: 14px; }
+.snack button { color: #A9CBFF; font-weight: 700; min-height: 40px; padding: 0 8px; white-space: nowrap; }
+.day h2 { font-size: 15px; font-weight: 700; padding: 12px 0 2px; }
+.visit { padding: 9px 0; border-top: 1px solid var(--line); }
+.visit:first-of-type { border-top: 0; }
+.visit b { overflow-wrap: anywhere; }
+.visit .d { font-size: 13px; color: var(--muted); }
+.lead-note { background: var(--pine-soft); color: var(--pine-ink); padding: 10px 12px; border-radius: 6px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay"></div>
+<script src="assets/field.js?v=f1"></script>
+<script>
+(function () {
+  'use strict';
+  const F = window.Field, esc = F.esc, fmt = F.fmt, ic = F.icon;
+  const $ = (id) => document.getElementById(id);
+  const V = { tab: 'home', sheet: null, draft: null, err: '', q: '', area: null, pos: null, posState: '', snack: null };
+  const me = () => F.byId[F.S.persona];
+  const seeNote = (p) => p.org === 'v'
+    ? 'この記録は、自社の管理者が見られます。'
+    : 'この記録は、' + F.orgName(p.org) + 'の管理者が見られます。発注側には訪問報告（店舗と内容）だけが届き、時刻と位置は届きません。';
+
+  function header() {
+    const p = me(), now = F.now();
+    return '<header class="top"><div class="bar"><div class="who"><b>' + esc(p.name) + '</b>' + esc(F.orgName(p.org)) + ' ／ ' + esc(p.role) + '</div>' +
+      '<div style="display:flex;align-items:center"><div class="clock num"><span id="clk">' + fmt(now) + '</span><small>' + F.MONTH + '月' + F.TODAY + '日(' + F.weekday(F.TODAY) + ')' + (F.isTest() ? ' テスト時刻' : '') + '</small></div><button class="proto-btn" data-sheet="demo">試作</button></div></div></header>';
+  }
+  function actBtn(act, cls, label, icon) { return '<button class="act ' + cls + '" data-act="' + act + '">' + ic(icon, cls === 'lead' ? 26 : 20) + label + '</button>'; }
+
+  function homeView() {
+    const p = me(), st = F.status(p), ev = F.events(p, F.TODAY) || [], n = F.nowMin();
+    let big = '', sub = '', acts = '';
+    if (st.key === 'before' || st.key === 'off') {
+      big = '稼働前'; sub = '今日の稼働を始めるときに押してください。';
+      acts = actBtn('start', 'lead', '稼働スタート', 'play');
+    } else if (st.key === 'active') {
+      big = '稼働中'; sub = '店舗に着いたら「入店する」を押してください。';
+      acts = actBtn('in', 'lead', '入店する', 'store') + '<div class="two-acts">' + actBtn('work', '', '作業開始', 'cafe') + actBtn('end', '', '稼働終了', 'stop') + '</div>';
+    } else if (st.key === 'in') {
+      const s = F.store(st.storeId);
+      big = '入店中 <span class="pill in">' + esc(s ? s.name : '') + '</span>'; sub = fmt(st.since) + ' から（' + F.dur(n - st.since) + '）';
+      acts = (n - st.since >= 180 ? '<div class="warnbox">' + ic('alert', 18) + '<span>入店から3時間以上たっています。退店の報告を忘れていませんか。</span></div>' : '') + actBtn('out', 'lead', '退店して報告する', 'doc');
+    } else if (st.key === 'work') {
+      big = '作業中 <span class="pill warn">' + esc(st.place) + '</span>'; sub = fmt(st.since) + ' から（' + F.dur(n - st.since) + '）';
+      acts = actBtn('workend', 'lead', '作業を終える', 'check') + '<div class="two-acts">' + actBtn('in', '', '入店する', 'store') + actBtn('end', '', '稼働終了', 'stop') + '</div>';
+    } else {
+      big = '稼働終了'; sub = fmt(st.since) + ' に終了しました。おつかれさまでした。';
+      acts = actBtn('restart', 'quiet', '稼働を再開する', 'play');
+    }
+    const vs = F.visits(ev), ws = F.works(ev), sp = F.span(ev, true);
+    let h = header() + '<main class="main">';
+    h += '<section class="state"><span class="lab">いまの状態</span><div class="big">' + big + '</div><span class="sub num">' + sub + '</span></section>';
+    h += '<div class="acts">' + acts + '</div>';
+    h += '<div class="sum"><div><small>訪問</small><b class="num">' + vs.length + '</b>件</div><div><small>作業</small><b class="num">' + ws.length + '</b>回</div><div><small>稼働</small><b class="num" style="font-size:16px">' + (sp ? fmt(sp.from) + '〜' : '—') + '</b></div></div>';
+    const recent = ev.slice(-3);
+    if (recent.length) h += '<section class="card"><h2>直近の記録</h2>' + F.timeline(recent) + '</section>';
+    h += '<p class="privacy">' + esc(seeNote(p)) + (F.S.settings.gps ? ' 位置はボタンを押した瞬間だけ記録します。' : ' 位置情報は使っていません。') + '</p>';
+    return h + '</main>';
+  }
+  function todayView() {
+    const p = me(), ev = F.events(p, F.TODAY) || [];
+    return header() + '<main class="main"><section class="card"><h2>' + F.dayLabel(F.TODAY) + 'の記録</h2>' + F.timeline(ev) + '</section><p class="privacy">記録を間違えたときは、押した直後に出る「取り消す」で戻せます。あとから直すときは、管理者に連絡してください。</p></main>';
+  }
+  function histView() {
+    const p = me(); let h = '';
+    for (let d = F.TODAY - 1; d >= Math.max(1, F.TODAY - 14); d--) {
+      const ev = F.events(p, d);
+      const vs = F.visits(ev);
+      h += '<section class="card day"><h2>' + F.dayLabel(d) + '</h2>' + (ev === null ? '<p class="empty">休み</p>' : vs.length ? vs.map((v) => '<div class="visit"><b>' + esc((F.store(v.storeId) || {}).name || '') + '</b> <span class="d num">' + fmt(v.tin) + '〜' + (v.tout != null ? fmt(v.tout) : '') + '</span>' + F.repHtml(v.rep, { noPhoto: true }) + '</div>').join('') : '<p class="empty">訪問の記録はありません。</p>') + '</section>';
+    }
+    return header() + '<main class="main"><p class="lead-note">ここには、あなた自身の報告だけが表示されます。ほかの人の報告は表示されません。</p>' + (h || '<p class="empty">今月の過去の記録はありません。</p>') + '</main>';
+  }
+  function tabs() {
+    const list = [['home', '記録', 'home'], ['today', '今日', 'list'], ['hist', '履歴', 'hist']];
+    return '<nav class="tabs" aria-label="メニュー">' + list.map((t) => '<button data-tab="' + t[0] + '"' + (V.tab === t[0] ? ' aria-current="page"' : '') + '>' + ic(t[2], 22) + t[1] + '</button>').join('') + '</nav>';
+  }
+
+  /* 操作シート */
+  function storeSheet() {
+    const p = me(), all = F.stores();
+    const q = V.q.trim().replace(/\s/g, '');
+    let list, lead = '';
+    if (F.S.settings.gps && V.pos) {
+      list = all.filter((s) => s.lat != null).map((s) => Object.assign({ dist: F.distanceM(V.pos, s) }, s)).sort((a, b) => a.dist - b.dist).slice(0, 8);
+      lead = '<p class="meta">現在地から近い順です（誤差' + Math.round(V.pos.acc) + 'm）。</p>';
+    } else {
+      const area = V.area || p.area;
+      list = all.filter((s) => s.area === area);
+      lead = (F.S.settings.gps ? '<p class="meta">' + esc(V.posState || '現在地を取得しています…') + '</p>' : '') +
+        '<div class="chips" role="group" aria-label="エリア">' + F.AREAS.map((a) => '<button class="chip" data-area="' + a.id + '" aria-pressed="' + (a.id === area) + '">' + a.name + '</button>').join('') + '</div>';
+    }
+    if (q) list = all.filter((s) => s.name.replace(/\s/g, '').includes(q));
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="入店する店舗"><h2>どの店舗に入店しますか</h2>' + lead +
+      '<div class="field"><label for="sq">店舗名で探す</label><input id="sq" type="search" value="' + esc(V.q) + '" placeholder="例: 山口"></div>' +
+      '<div class="pick-list">' + (list.map((s) => '<button class="pick" data-store="' + esc(s.id) + '"><span>' + esc(s.name) + '</span><small class="num">' + (s.dist != null ? (s.dist < 1000 ? Math.round(s.dist) + 'm' : (s.dist / 1000).toFixed(1) + 'km') : esc(s.pref)) + '</small></button>').join('') || '<p class="empty">見つかりません。</p>') + '</div>' +
+      '<div class="field"><label for="newStore">一覧にない店舗</label><input id="newStore" placeholder="店舗名を入力"></div>' + (V.err ? '<div class="err" role="alert">' + esc(V.err) + '</div>' : '') +
+      '<button class="btn" id="useNew">入力した店舗で入店する</button><button class="btn" data-close="1">やめる</button></div>';
+  }
+  function reportSheet() {
+    const p = me(), st = F.status(p), s = F.store(st.storeId), d = V.draft, n = F.nowMin();
+    const chips = (list, key) => '<div class="chips">' + list.map((x) => '<button class="chip" data-pick="' + key + '" data-v="' + esc(x) + '" aria-pressed="' + d[key].includes(x) + '">' + esc(x) + '</button>').join('') + '</div>';
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="退店の報告"><h2>退店の報告</h2><p class="meta num">' + esc(s ? s.name : '') + ' ／ ' + fmt(st.since) + '〜' + fmt(n) + '（' + F.dur(n - st.since) + '）</p>' +
+      '<div class="field"><span class="lab">何をしましたか（複数可）</span>' + chips(F.didList(), 'did') + '</div>' +
+      '<div class="field"><span class="lab">だれと</span>' + chips(F.whoList(), 'who') + '</div>' +
+      '<div class="field"><label for="note">内容</label><textarea id="note" placeholder="例: 新商品の陳列を店長と確認しました">' + esc(d.note) + '</textarea></div>' +
+      '<div class="field"><span class="lab">写真（3枚まで・任意）</span><label class="btn" for="ph" style="justify-self:start">写真を追加</label><input id="ph" type="file" accept="image/*" multiple hidden>' + (d.photos.length ? '<div class="thumbs">' + d.photos.map((id) => '<span class="ph"><img data-photo="' + esc(id) + '" alt="添付した写真"></span>').join('') + '</div>' : '') + '</div>' +
+      (V.err ? '<div class="err" role="alert">' + esc(V.err) + '</div>' : '') +
+      '<button class="btn primary" id="sendOut" style="min-height:54px">報告して退店する</button><button class="btn" data-close="1">まだ店内にいる</button></div>';
+  }
+  function placeSheet() {
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="作業の場所"><h2>どこで作業しますか</h2><div class="pick-list">' + F.PLACES.map((x) => '<button class="pick" data-place="' + esc(x) + '"><span>' + esc(x) + '</span></button>').join('') + '</div><button class="btn" data-close="1">やめる</button></div>';
+  }
+  function workendSheet() {
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="作業の終了"><h2>作業を終える</h2><div class="field"><label for="memo">何をしましたか（任意）</label><input id="memo" placeholder="例: 報告書の作成"></div><button class="btn primary" id="sendWorkend" style="min-height:54px">作業を終える</button><button class="btn" data-close="1">続ける</button></div>';
+  }
+  function demoSheet() {
+    return '<div class="sheet-back" data-close="1"></div><div class="sheet" role="dialog" aria-label="試作の操作"><h2>試作の操作</h2>' +
+      '<div class="field"><span class="lab">操作する人</span><div class="seg">' + F.LIVE.map((id) => { const p = F.byId[id]; return '<button data-persona="' + id + '" aria-pressed="' + (F.S.persona === id) + '">' + esc(F.orgName(p.org)) + 'の' + esc(p.role) + '</button>'; }).join('') + '</div></div>' +
+      '<div class="field"><span class="lab">位置情報</span><div class="seg"><button data-gps="0" aria-pressed="' + !F.S.settings.gps + '">使わない</button><button data-gps="1" aria-pressed="' + F.S.settings.gps + '">ボタンを押した瞬間だけ使う</button></div><span class="small muted">本番では管理者が決める設定です。</span></div>' +
+      '<div class="field"><span class="lab">時刻 <span class="num">' + fmt(F.now()) + '</span>' + (F.isTest() ? '（テスト中）' : '（実際の時刻）') + '</span><div class="jump-row">' + [[540, '09:00'], [690, '11:30'], [900, '15:00']].map((j) => '<button class="btn num" data-jump="' + j[0] + '">' + j[1] + '</button>').join('') + (F.isTest() ? '<button class="btn primary" data-jump="real">実際の時刻に戻す</button>' : '') + '</div></div>' +
+      '<a class="btn" href="admin/" style="text-decoration:none">' + ic('users', 18) + '管理画面を開く</a><button class="btn" data-reset="1">最初の状態に戻す</button>' +
+      '<p class="small muted">外回り版の試作です。データは架空のサンプルで、この端末の中だけに保存します。</p><button class="btn primary" data-close="1">閉じる</button></div>';
+  }
+
+  function render() {
+    const views = { home: homeView, today: todayView, hist: histView };
+    $('app').innerHTML = views[V.tab]() + tabs();
+    F.hydratePhotos($('app'));
+    renderOverlay();
+  }
+  function renderOverlay() {
+    let h = '';
+    const sheets = { store: storeSheet, report: reportSheet, place: placeSheet, workend: workendSheet, demo: demoSheet };
+    if (V.sheet) { let x = sheets[V.sheet](); if (V.sheet === shown) x = x.replace('<div class="sheet" role', '<div class="sheet" style="animation:none" role'); h += x; }
+    shown = V.sheet;
+    if (V.snack && !V.sheet) h += '<div class="snack" role="status"><span>' + esc(V.snack.text) + '</span>' + (V.snack.undo ? '<button id="undo">取り消す</button>' : '') + '</div>';
+    $('overlay').innerHTML = h;
+    if (V.sheet) F.hydratePhotos($('overlay'));
+  }
+  let snackT, shown = null;
+  function snack(text, undo) { V.snack = { text, undo }; clearTimeout(snackT); snackT = setTimeout(() => { V.snack = null; V.undoLen = null; renderOverlay(); }, undo ? 5000 : 2600); renderOverlay(); }
+
+  /* 位置はボタンを押した瞬間だけ取る。取れなくても記録は残す */
+  function locate(e) {
+    if (!F.S.settings.gps) return;
+    if (!navigator.geolocation) { e.loc = { err: 1 }; return; }
+    e.loc = { pending: true };
+    navigator.geolocation.getCurrentPosition((pos) => { e.loc = { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy) }; F.save(); if (!V.sheet) render(); },
+      () => { e.loc = { err: 1 }; F.save(); if (!V.sheet) render(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+  }
+  function record(list, msg) {
+    const p = me(); F.S.ev[p.id] = F.S.ev[p.id] || [];
+    V.undoLen = F.S.ev[p.id].length;
+    const t = F.nowMin();
+    list.forEach((x) => { const e = F.push(p.id, Object.assign({ t }, x)); locate(e); });
+    F.save(); V.sheet = null; V.err = ''; render();
+    try { if (navigator.vibrate) navigator.vibrate(25); } catch (err) { /* 無視 */ }
+    snack(msg, true);
+  }
+  function openStore() {
+    V.sheet = 'store'; V.q = ''; V.area = null; V.err = '';
+    if (F.S.settings.gps && navigator.geolocation) {
+      V.pos = null; V.posState = '現在地を取得しています…';
+      navigator.geolocation.getCurrentPosition((pos) => { V.pos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy }; if (V.sheet === 'store') renderOverlay(); },
+        () => { V.posState = '現在地を取得できませんでした。一覧から選んでください。'; if (V.sheet === 'store') renderOverlay(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+    }
+    renderOverlay();
+  }
+  function enter(storeId) {
+    const st = F.status(me()), list = [];
+    if (st.key === 'work') list.push({ type: 'workend', place: st.place, memo: '' });
+    list.push({ type: 'in', storeId });
+    record(list, (F.store(storeId) || {}).name + 'に入店しました');
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button, [data-close]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.tab) { V.tab = d.tab; window.scrollTo(0, 0); render(); return; }
+    if (d.close) { V.sheet = null; V.err = ''; renderOverlay(); return; }
+    if (d.sheet) { V.sheet = d.sheet; renderOverlay(); return; }
+    if (b.id === 'undo') {
+      const p = me();
+      if (V.undoLen != null && F.S.ev[p.id]) { F.S.ev[p.id].length = V.undoLen; F.save(); }
+      V.snack = null; V.undoLen = null; render(); return;
+    }
+    if (d.act) {
+      const st = F.status(me());
+      if (d.act === 'start' || d.act === 'restart') { record([{ type: 'start' }], '稼働をスタートしました'); return; }
+      if (d.act === 'in') { openStore(); return; }
+      if (d.act === 'out') { V.draft = { did: [], who: [], note: '', photos: [] }; V.err = ''; V.sheet = 'report'; renderOverlay(); return; }
+      if (d.act === 'work') { V.sheet = 'place'; renderOverlay(); return; }
+      if (d.act === 'workend') { V.sheet = 'workend'; renderOverlay(); return; }
+      if (d.act === 'end') { const list = []; if (st.key === 'work') list.push({ type: 'workend', place: st.place, memo: '' }); list.push({ type: 'end' }); record(list, '稼働を終了しました'); return; }
+    }
+    if (d.area) { V.area = d.area; renderOverlay(); return; }
+    if (d.store) { enter(d.store); return; }
+    if (b.id === 'useNew') {
+      const name = $('newStore').value.trim();
+      if (!name) { V.err = '店舗名を入力してください。'; renderOverlay(); return; }
+      const s = { id: 'x' + Date.now(), name, pref: '', area: me().area, lat: null, lng: null, added: true };
+      F.S.extraStores.push(s); F.save(); enter(s.id); return;
+    }
+    if (d.pick) {
+      const arr = V.draft[d.pick], i = arr.indexOf(d.v);
+      if (i >= 0) arr.splice(i, 1); else arr.push(d.v);
+      b.setAttribute('aria-pressed', String(i < 0)); return;
+    }
+    if (b.id === 'sendOut') {
+      const dr = V.draft; dr.note = $('note').value.trim();
+      if (!dr.did.length) { V.err = '「何をしましたか」を1つ以上選んでください。'; renderOverlay(); return; }
+      const st = F.status(me());
+      record([{ type: 'out', storeId: st.storeId, rep: { did: dr.did.slice(), who: dr.who.slice(), note: dr.note, photos: dr.photos.slice() } }], '退店の報告を送りました'); V.draft = null; return;
+    }
+    if (d.place) { record([{ type: 'work', place: d.place }], d.place + 'で作業を始めました'); return; }
+    if (b.id === 'sendWorkend') { const st = F.status(me()); record([{ type: 'workend', place: st.place, memo: $('memo').value.trim() }], '作業を終えました'); return; }
+    if (d.persona) { F.S.persona = d.persona; F.save(); V.sheet = 'demo'; render(); return; }
+    if (d.gps) { F.S.settings.gps = d.gps === '1'; F.save(); render(); return; }
+    if (d.jump) { if (d.jump === 'real') F.setReal(); else F.setNow(+d.jump); V.sheet = null; render(); return; }
+    if (d.reset) { F.reset(); V.sheet = null; V.tab = 'home'; render(); snack('最初の状態に戻しました'); return; }
+  });
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'sq') {
+      V.q = e.target.value; const pos = e.target.selectionStart; renderOverlay();
+      const n = $('sq'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (err) { /* 無視 */ } }
+    }
+    if (e.target.id === 'note' && V.draft) V.draft.note = e.target.value;
+  });
+  document.addEventListener('change', async (e) => {
+    if (e.target.id !== 'ph' || !V.draft) return;
+    const files = Array.from(e.target.files || []).slice(0, 3 - V.draft.photos.length);
+    V.err = '';
+    for (const f of files) {
+      try {
+        const url = await F.shrinkImage(f, 1280, 0.8), id = 'fp-' + me().id + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        await F.photoPut(id, url); V.draft.photos.push(id);
+      } catch (err) { V.err = '写真を読み込めませんでした。'; }
+    }
+    renderOverlay();
+  });
+  const formFocused = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName); };
+  let last = F.nowMin();
+  setInterval(() => {
+    const c = $('clk'); if (c) c.textContent = fmt(F.now());
+    const m = F.nowMin();
+    if (m !== last) { last = m; if (!V.sheet && !formFocused()) render(); }
+  }, 1000);
+  F.onChange(() => { if (!V.sheet && !formFocused()) render(); });
+  render();
+})();
+</script>
+</body>
+</html>
