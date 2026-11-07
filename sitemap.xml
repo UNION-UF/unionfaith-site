@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://unionfaith.jp/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://unionfaith.jp/business/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://unionfaith.jp/message/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://unionfaith.jp/company/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://unionfaith.jp/recruit/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://unionfaith.jp/contact/</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://unionfaith.jp/privacy.html</loc><lastmod>2026-11-03</lastmod></url>
   <url><loc>https://unionfaith.jp/jobs/</loc><lastmod>2026-11-04</lastmod></url>
   <url><loc>https://unionfaith.jp/jobs/search.html</loc><lastmod>2026-11-07</lastmod></url>
