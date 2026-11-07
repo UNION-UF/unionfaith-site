@@ -12,7 +12,7 @@
       opt = opt || {}; h = h || 18;
       var t = Math.round(h * 1.75);
       return '<span class="logo" role="img" aria-label="SATTO' + (opt.sub ? ' ' + opt.sub : '') + '">' +
-        (opt.icon === false ? '' : '<img class="tile" src="' + dir + 'satto-icon.svg" width="' + t + '" height="' + t + '" alt="">') +
+        (opt.icon === false ? '' : '<img class="tile" src="' + dir + 'satto-icon.svg?v=3" width="' + t + '" height="' + t + '" alt="">') +
         mark(h) + (opt.sub ? '<span class="sub">' + opt.sub + '</span>' : '') + '</span>';
     }
   };

@@ -4,9 +4,6 @@
 <linearGradient id="tile" x1="0" y1="0" x2="0.36" y2="1">
 <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.55" stop-color="#F8F9FB"/><stop offset="1" stop-color="#EBEEF2"/>
 </linearGradient>
-<linearGradient id="face" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="80">
-<stop offset="0" stop-color="#46957B"/><stop offset="1" stop-color="#227257"/>
-</linearGradient>
 <filter id="glyphShadow" x="-10%" y="-20%" width="120%" height="160%">
 <feGaussianBlur in="SourceAlpha" stdDeviation="10.6"/>
 <feOffset dy="21.3" result="b"/>
@@ -17,5 +14,5 @@
 
 </defs>
 <rect x="0" y="0" width="1024" height="1024" fill="url(#tile)"/>
-<g filter="url(#glyphShadow)"><g transform="translate(170.67 341.33) scale(4.26667)" fill="url(#face)"><rect x="0" y="0" width="132" height="20"/><rect x="22" y="0" width="20" height="80"/><rect x="88" y="0" width="20" height="80"/><circle cx="150" cy="10" r="10"/></g></g>
+<g filter="url(#glyphShadow)"><g transform="translate(170.67 341.33) scale(4.26667)" fill="#288465"><rect x="0" y="0" width="132" height="20"/><rect x="22" y="0" width="20" height="80"/><rect x="88" y="0" width="20" height="80"/><circle cx="150" cy="10" r="10"/></g></g>
 </svg>
