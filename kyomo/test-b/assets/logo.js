@@ -1,26 +1,19 @@
-/* SATTO のロゴ（文字のロゴ：2つのTを1本の線でつなぎ、端に点）とアイコン。色は会社の緑 */
+/* SATTO のロゴとアイコン（公式データ）。ロゴは形と比率を変えずに使い、文字の色だけを背景に合わせて切り替える */
 (function () {
   'use strict';
-  var G = '#288465';
-  function tt(fs) {
-    return '<svg class="tt" viewBox="0 0 158 78" width="' + (fs * 1.41).toFixed(1) + '" height="' + (fs * 0.696).toFixed(1) + '" aria-hidden="true">' +
-      '<rect x="0" y="0" width="134" height="15" fill="' + G + '"/><rect x="24" y="0" width="17" height="78" fill="' + G + '"/>' +
-      '<rect x="92" y="0" width="17" height="78" fill="' + G + '"/><circle cx="148" cy="7.5" r="8.5" fill="' + G + '"/></svg>';
-  }
-  function tile(px) {
-    var g = Math.round(px * 0.66);
-    return '<span class="tile" style="width:' + px + 'px;height:' + px + 'px;border-radius:' + Math.round(px * 0.236) + 'px">' +
-      '<svg viewBox="0 0 160 80" width="' + g + '" height="' + Math.round(g / 2) + '" aria-hidden="true">' +
-      '<rect x="0" y="0" width="132" height="22" fill="' + G + '"/><rect x="21" y="0" width="22" height="80" fill="' + G + '"/>' +
-      '<rect x="87" y="0" width="22" height="80" fill="' + G + '"/><circle cx="149" cy="11" r="11" fill="' + G + '"/></svg></span>';
+  var me = document.currentScript && document.currentScript.src;
+  var dir = me ? me.replace(/[^/]*$/, '') : 'assets/';
+  var VB = "-26.4 0 3670.8 814.7", INNER = "<path class=\"ink\" transform=\"translate(0.0 760.4) scale(1 -1)\" d=\"M280 -11Q193 -11 130.25 17.25Q67.5 45.5 16 103.5L117.5 205Q151.5 165.5 193.0 144.0Q234.5 122.5 290 122.5Q339.5 122.5 367.25 140.75Q395 159 395 191Q395 219.5 377.0 237.75Q359 256 329.5 269.0Q300 282 264.5 293.75Q229 305.5 193.75 321.25Q158.5 337 129.0 360.25Q99.5 383.5 81.5 419.25Q63.5 455 63.5 508.5Q63.5 574 95.25 620.75Q127 667.5 183.0 692.25Q239 717 311.5 717Q386 717 447.5 690.75Q509 664.5 548.5 620L446.5 518.5Q415 551.5 382.25 567.5Q349.5 583.5 309 583.5Q267.5 583.5 243.5 568.0Q219.5 552.5 219.5 523.5Q219.5 497 237.5 480.5Q255.5 464 285.0 451.75Q314.5 439.5 350.0 427.5Q385.5 415.5 420.75 399.75Q456 384 485.5 359.5Q515 335 533.0 297.5Q551 260 551 205Q551 103.5 479.0 46.25Q407 -11 280 -11Z\"/>\n<path class=\"ink\" transform=\"translate(598.6 760.4) scale(1 -1)\" d=\"M15 0 294.5 706H436.5L713.5 0H547.5L336 586H393L178 0ZM174 127.5V255.5H558.5V127.5Z\"/>\n<path class=\"ink\" transform=\"translate(2828.0 760.4) scale(1 -1)\" d=\"M404.5 -12Q325 -12 257.25 16.0Q189.5 44 138.75 93.75Q88 143.5 59.75 210.25Q31.5 277 31.5 354Q31.5 431.5 59.5 497.5Q87.5 563.5 137.75 613.25Q188 663 255.5 690.5Q323 718 402.5 718Q482 718 549.5 690.5Q617 663 667.5 613.25Q718 563.5 746.0 497.0Q774 430.5 774 353Q774 276 746.0 209.5Q718 143 667.75 93.25Q617.5 43.5 550.25 15.75Q483 -12 404.5 -12ZM402.5 131Q466 131 513.25 159.0Q560.5 187 586.75 237.25Q613 287.5 613 354Q613 403.5 598.0 444.0Q583 484.5 555.0 514.0Q527 543.5 488.5 559.25Q450 575 402.5 575Q339.5 575 292.25 547.5Q245 520 218.75 470.25Q192.5 420.5 192.5 354Q192.5 304 207.5 262.75Q222.5 221.5 250.25 192.25Q278 163 316.75 147.0Q355.5 131 402.5 131Z\"/>\n<g fill=\"#288465\">\n<rect x=\"1358.9\" y=\"54.4\" width=\"1212.9\" height=\"135.8\"/>\n<rect x=\"1576.1\" y=\"54.4\" width=\"153.9\" height=\"706.0\"/>\n<rect x=\"2191.6\" y=\"54.4\" width=\"153.9\" height=\"706.0\"/>\n<circle cx=\"2698.5\" cy=\"122.2\" r=\"76.9\"/>\n</g>";
+  function mark(h) {
+    return '<svg class="mark" viewBox="' + VB + '" height="' + h + '" width="' + (h * 3670.8 / 814.7).toFixed(1) + '" aria-hidden="true">' + INNER + '</svg>';
   }
   window.SATTO = {
-    logo: function (fs, opt) {
-      opt = opt || {}; fs = fs || 20;
+    logo: function (h, opt) {
+      opt = opt || {}; h = h || 18;
+      var t = Math.round(h * 1.75);
       return '<span class="logo" role="img" aria-label="SATTO' + (opt.sub ? ' ' + opt.sub : '') + '">' +
-        (opt.icon === false ? '' : tile(Math.round(fs * 1.45))) +
-        '<span class="wm" style="font-size:' + fs + 'px" aria-hidden="true">SA' + tt(fs) + 'O</span>' +
-        (opt.sub ? '<span class="sub">' + opt.sub + '</span>' : '') + '</span>';
+        (opt.icon === false ? '' : '<img class="tile" src="' + dir + 'satto-icon.svg" width="' + t + '" height="' + t + '" alt="">') +
+        mark(h) + (opt.sub ? '<span class="sub">' + opt.sub + '</span>' : '') + '</span>';
     }
   };
 })();
