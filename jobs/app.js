@@ -14,77 +14,77 @@
     tag: '未経験歓迎',
     title: 'au・UQ mobileの携帯販売スタッフ',
     region: '中国', prefs: ['山口'],
-    area: '山口県山口市', site: '店舗固定', pay: '日額 13,000円〜（スキルに応じて決定）', days: '月21日', hours: '10:00〜19:00',
+    area: '山口県山口市', site: '店舗固定', pay: '日額 13,000円〜（スキルに応じて決定）', days: '月21日（目安）', hours: '10:00〜19:00',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-yamaguchi.html'
   }, {
     tag: '経験者のみ',
     title: 'ソフトバンクの携帯販売スタッフ',
     region: '九州・沖縄', prefs: ['福岡', '佐賀', '熊本'],
-    area: '福岡県・佐賀県・熊本県', site: '面談でご案内', pay: '日額 18,500円〜25,000円', days: '月21日', hours: '10:00〜19:00',
+    area: '福岡県・佐賀県・熊本県', site: '面談でご案内', pay: '日額 18,500円〜25,000円', days: '月21日（目安）', hours: '10:00〜19:00',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-kyushu-softbank.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '中国', prefs: ['鳥取'],
-    area: '鳥取県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '鳥取県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-tottori-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '中国', prefs: ['島根'],
-    area: '島根県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '島根県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-shimane-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '中国', prefs: ['岡山'],
-    area: '岡山県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '岡山県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-okayama-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '中国', prefs: ['広島'],
-    area: '広島県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '広島県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-hiroshima-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '中国', prefs: ['山口'],
-    area: '山口県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '山口県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-yamaguchi-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '四国', prefs: ['徳島'],
-    area: '徳島県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '徳島県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-tokushima-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '四国', prefs: ['香川'],
-    area: '香川県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '香川県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-kagawa-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '四国', prefs: ['愛媛'],
-    area: '愛媛県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '愛媛県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-ehime-docomo.html'
   }, {
     tag: '経験者のみ',
     title: 'ドコモの携帯販売スタッフ',
     region: '四国', prefs: ['高知'],
-    area: '高知県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談可', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
+    area: '高知県内', site: '移動型（交通費・宿泊費は別途支給）', pay: '日額 20,000円', days: '相談のうえ契約で決定', hours: '10:00〜18:00 または 10:00〜19:00（店舗により異なる）',
     styles: ['業務委託', '契約社員', 'アルバイト'],
     href: 'job-kochi-docomo.html'
   }];
@@ -124,7 +124,7 @@
     var title = document.createElement('span'); title.className = 'job__title'; title.textContent = j.title;
     main.appendChild(tag); main.appendChild(title);
     var terms = document.createElement('dl'); terms.className = 'job__terms';
-    [['エリア', j.area], ['現場', j.site], ['報酬', j.pay], ['日数', j.days], ['時間', j.hours], ['働き方', '業務委託（雇用の相談も可）']].forEach(function (r) {
+    [['エリア', j.area], ['現場', j.site], ['報酬', j.pay], ['稼働日数', j.days], ['営業時間', j.hours], ['働き方', '業務委託（雇用の相談も可）']].forEach(function (r) {
       var row = document.createElement('div');
       var dt = document.createElement('dt'); dt.textContent = r[0];
       var dd = document.createElement('dd'); dd.textContent = r[1];
