@@ -1,8 +1,8 @@
 /* キョウモ 共通トークン。深い松葉色を主役に、状態色だけを強く見せる。 */
-/* デザインA（白基調）: 白い面と細い罫線を土台に、紺は操作と選択中の表示だけに使う */
+/* デザインA（白基調）: 白い面と細い罫線を土台に、会社の緑は操作と選択中の表示だけに使う */
 :root {
   --bg: #F6F7F9; --surface: #FFFFFF; --sunken: #EEF0F4; --ink: #17233A; --muted: #4C5A70; --line: #CDD3DC;
-  --pine: #17305C; --on-pine: #FFFFFF; --pine-soft: #E3E8F2; --pine-ink: #17305C; --pine-deep: #FFFFFF; --on-deep: #17233A; --on-deep-muted: #5A6578;
+  --pine: #288465; --on-pine: #FFFFFF; --pine-soft: #E3F1EA; --pine-ink: #1F6B52; --pine-deep: #FFFFFF; --on-deep: #17233A; --on-deep-muted: #5A6578;
   --night: #0F5C6E; --on-night: #FFFFFF;
   --amber-soft: #FBEFD3; --amber-ink: #7A4E00;
   --red: #B3261E; --on-red: #FFFFFF; --red-soft: #FBECEA; --red-ink: #8E1F12;
@@ -13,7 +13,7 @@
 }
 @media (prefers-color-scheme: dark) { :root {
   --bg: #10151D; --surface: #18202B; --sunken: #202A37; --ink: #E8ECF2; --muted: #A3AEBD; --line: #2E3947;
-  --pine: #8FB1EC; --on-pine: #0B1930; --pine-soft: #1E2C44; --pine-ink: #B4CBF3; --pine-deep: #14233C; --on-deep: #F1F5FB; --on-deep-muted: #B5C2D6;
+  --pine: #6CC9A3; --on-pine: #062A1D; --pine-soft: #173A2D; --pine-ink: #9FE0C2; --pine-deep: #14233C; --on-deep: #F1F5FB; --on-deep-muted: #B5C2D6;
   --night: #7CC7D6; --on-night: #072830;
   --amber-soft: #3A2E12; --amber-ink: #F0C878;
   --red: #F08A79; --on-red: #2B0A04; --red-soft: #41201A; --red-ink: #F6B6AA;
@@ -61,3 +61,10 @@ a.btn { color: inherit; }
 .jump-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .jump-row .btn { min-height: 38px; padding: 5px 12px; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* SATTO のロゴ */
+.logo { display: inline-flex; align-items: center; gap: 9px; line-height: 1; vertical-align: middle; }
+.logo .tile { display: inline-flex; align-items: center; justify-content: center; flex: none; background: linear-gradient(165deg, #FFFFFF 0%, #F8F9FB 55%, #EBEEF2 100%); box-shadow: 0 0 0 1px rgba(22, 32, 44, .08), 0 2px 4px rgba(22, 32, 44, .14); }
+.logo .wm { display: inline-flex; align-items: baseline; font-family: 'Outfit', var(--sans); font-weight: 700; letter-spacing: .02em; color: var(--ink); }
+.logo .wm .tt { margin: 0 .035em 0 .018em; }
+.logo .sub { font-family: var(--sans); font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .04em; margin-left: 2px; }

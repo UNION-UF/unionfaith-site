@@ -9,8 +9,8 @@
 <title>店舗の準備状況 テストB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
-<link rel="stylesheet" href="../assets/base.css?v=w1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@700&display=swap">
+<link rel="stylesheet" href="../assets/base.css?v=s1">
 <style>
 .side { background: var(--pine-deep); color: var(--on-deep); padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; position: sticky; top: 0; z-index: 8; }
 .side .brand { font-size: 17px; }
@@ -60,6 +60,7 @@ td { padding: 9px 12px; border-top: 1px solid var(--line); white-space: nowrap; 
 <aside class="side" id="side"></aside>
 <main class="content" id="content"></main>
 <div id="overlay"></div>
+<script src="../assets/logo.js?v=s1"></script>
 <script src="client-data.js?v=b1"></script>
 <script>
 /* 発注側の画面。店舗ごとの状況と委託先ごとの集計だけを読む。スタッフの情報はこの画面に届かない */
@@ -84,7 +85,7 @@ td { padding: 9px 12px; border-top: 1px solid var(--line); white-space: nowrap; 
 
   function side() {
     const nav = [['stores', '店舗の状況'], ['comp', '委託先の完了状況'], ['about', 'この画面について']];
-    $('side').innerHTML = '<span class="brand">店舗の準備状況</span><span class="role">発注側の画面 ／ テストB</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-demo="1">試作</button></div>';
+    $('side').innerHTML = '<span class="brand">' + SATTO.logo(18) + '</span><span class="brand" style="margin-left:4px">店舗の準備状況</span><span class="role">発注側の画面 ／ テストB</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-demo="1">試作</button></div>';
   }
   function storesPage(F) {
     const scoped = F.stores.filter((s) => (V.area === 'all' || s.area === V.area) && (V.pref === 'all' || s.pref === V.pref) && (V.itaku === 'all' || s.itaku === V.itaku));
