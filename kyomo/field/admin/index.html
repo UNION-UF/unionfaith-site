@@ -124,8 +124,18 @@ tr.cold td { background: var(--amber-soft); }
     const visitsToday = sts.reduce((n, x) => n + F.visits(x.ev).length, 0);
     sts.sort((a, b) => STATUS_SORT[a.st.key] - STATUS_SORT[b.st.key] || a.p.id.localeCompare(b.p.id, 'ja', { numeric: true }));
     let h = '<div class="head"><h1>今日の動き</h1><span class="meta num">' + F.dayLabel(F.TODAY) + ' ' + fmt(F.now()) + (F.isTest() ? '（テスト時刻）' : '') + '</span></div>';
-    h += '<p class="scope">' + (F.S.viewer === 'v' ? '自社の社員だけを表示します。委託先の人は「訪問報告」に報告だけが表示され、時刻と位置は表示しません。' : esc(F.orgName(F.S.viewer)) + 'の人だけを表示します。他社の人は表示しません。') + '</p>';
+    const others = F.PEOPLE.filter((p) => p.org !== F.S.viewer);
+    h += '<p class="scope">' + (F.S.viewer === 'v' ? '自社の社員（' + all.length + '人）だけを表示します。委託先の人（' + others.length + '人）は、時刻、位置、いまの状態を表示しません。下の件数と「訪問報告」で、報告の内容だけを確認できます。' : esc(F.orgName(F.S.viewer)) + 'の人だけを表示します。他社の人は表示しません。') + '</p>';
     h += '<div class="stats"><div class="stat"><small>稼働中</small><b class="num">' + c(['active', 'in', 'work']) + '</b><em>人</em></div><div class="stat"><small>入店中</small><b class="num">' + c(['in']) + '</b><em>人</em></div><div class="stat"><small>作業中</small><b class="num">' + c(['work']) + '</b><em>人</em></div><div class="stat"><small>稼働終了</small><b class="num">' + c(['end']) + '</b><em>人</em></div><div class="stat"><small>今日の訪問</small><b class="num">' + visitsToday + '</b><em>件</em></div></div>';
+    if (F.S.viewer === 'v') {
+      /* 委託先ごとの件数だけを出す。誰が何時に訪問したかは出さない */
+      const rows = F.ORGS.filter((o) => o.id !== 'v').map((o) => {
+        const ps = F.PEOPLE.filter((p) => p.org === o.id);
+        const n = ps.reduce((m, p) => m + F.visits(F.events(p, F.TODAY)).filter((v) => v.tout != null && v.rep).length, 0);
+        return '<tr><td><b>' + esc(o.name) + '</b></td><td class="num">' + ps.length + '人</td><td class="num">' + n + '件</td></tr>';
+      }).join('');
+      h += '<section class="block"><div class="row"><h2>委託先からの今日の訪問報告</h2><button class="btn" data-page="reports">報告を見る</button></div><div class="tablebox"><table><thead><tr><th>委託先</th><th>担当の人数</th><th>今日の報告</th></tr></thead><tbody>' + rows + '</tbody></table></div></section>';
+    }
     h += areaChips('area', all) + '<div class="sel-row"><input id="q" type="search" placeholder="名前で探す" value="' + esc(V.q) + '" aria-label="名前で探す"></div>';
     h += '<section class="list">' + (sts.map((x) => {
       const p = x.p, st = x.st;

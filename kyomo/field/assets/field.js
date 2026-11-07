@@ -51,7 +51,7 @@
   const GIV = ['大輔', '美咲', '翔太', '彩', '健太', '葵', '拓也', '真由', '亮', '結衣', '直樹', '千尋', '誠', '遥', '悠斗', '七海', '航', '優花', '陸', '莉子', '蓮', '楓', '颯', '明日香'];
   const PEOPLE = [];
   for (let i = 0; i < 24; i++) {
-    const org = i < 14 ? 'v' : i < 20 ? 'a' : 'b';
+    const org = i < 5 ? 'v' : i < 16 ? 'a' : 'b'; /* 自社の社員は少数で、ほとんどが委託先の人という想定 */
     const area = ['chugoku', 'kyushu', 'chugoku', 'kyushu', 'okinawa', 'kansai'][i % 6];
     const role = org === 'v' ? (i % 5 === 1 ? 'SV（BIGLOBE）' : i % 5 === 3 ? 'ラウンダー' : 'SV') : (i % 2 ? 'ラウンダー' : 'SV');
     PEOPLE.push({ id: 'f' + (i + 1), name: SUR[i] + ' ' + GIV[(i * 7) % GIV.length], org, area, role });
