@@ -1,8 +1,8 @@
 /* キョウモ 共通トークン。深い松葉色を主役に、状態色だけを強く見せる。 */
-/* デザインA: 紺と細い罫線。角を立て、読みやすい書体で業務システムの信頼感を出す */
+/* デザインA（白基調）: 白い面と細い罫線を土台に、紺は操作と選択中の表示だけに使う */
 :root {
-  --bg: #F4F5F7; --surface: #FFFFFF; --sunken: #EEF0F4; --ink: #17233A; --muted: #4C5A70; --line: #CDD3DC;
-  --pine: #17305C; --on-pine: #FFFFFF; --pine-soft: #E3E8F2; --pine-ink: #17305C; --pine-deep: #17305C; --on-deep: #FFFFFF; --on-deep-muted: #C8D3E6;
+  --bg: #F6F7F9; --surface: #FFFFFF; --sunken: #EEF0F4; --ink: #17233A; --muted: #4C5A70; --line: #CDD3DC;
+  --pine: #17305C; --on-pine: #FFFFFF; --pine-soft: #E3E8F2; --pine-ink: #17305C; --pine-deep: #FFFFFF; --on-deep: #17233A; --on-deep-muted: #5A6578;
   --night: #0F5C6E; --on-night: #FFFFFF;
   --amber-soft: #FBEFD3; --amber-ink: #7A4E00;
   --red: #B3261E; --on-red: #FFFFFF; --red-soft: #FBECEA; --red-ink: #8E1F12;
@@ -20,6 +20,7 @@
   --ok-soft: #14352A; --ok-ink: #8ADDAE;
   color-scheme: dark;
 } }
+.top, .side { border-bottom: 1px solid var(--line); }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; -webkit-text-size-adjust: 100%; font-feature-settings: "tnum"; }
