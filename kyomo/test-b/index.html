@@ -7,11 +7,11 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="テストB">
+<meta name="apple-mobile-web-app-title" content="SATTO">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>キョウモ テストB</title>
+<title>SATTO テストB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -177,9 +177,9 @@
   function header(title) {
     const p = me(), now = K.now(), sec = String(Math.floor((now % 1) * 60)).padStart(2, '0');
     if (title) {
-      return '<header class="top"><div class="bar">' + (V.sub ? '<button class="back" data-back="1">' + ic('back', 20) + '戻る</button>' : '<span class="brand">キョウモ テストB</span>') + demoBtn() + '</div><h1 class="sub-title">' + esc(title) + '</h1></header>';
+      return '<header class="top"><div class="bar">' + (V.sub ? '<button class="back" data-back="1">' + ic('back', 20) + '戻る</button>' : '<span class="brand">SATTO テストB</span>') + demoBtn() + '</div><h1 class="sub-title">' + esc(title) + '</h1></header>';
     }
-    return '<header class="top"><div class="bar"><span class="brand">キョウモ テストB</span>' + demoBtn() + '</div></header>' +
+    return '<header class="top"><div class="bar"><span class="brand">SATTO テストB</span>' + demoBtn() + '</div></header>' +
       '<section class="clock-sec"><div class="when"><span>' + dateLabel + (K.isTest() ? '　テスト時刻' : '') + '</span><span>' + esc(p.name) + '</span></div>' +
       '<div class="clock num"><b id="clockHM">' + fmt(now) + '</b><span id="clockS">' + sec + '</span></div></section>';
   }
@@ -352,7 +352,7 @@
     } else {
       body = '<h1>パスワードの設定</h1><div class="field"><label for="aNew">新しいパスワード（8文字以上）</label><input id="aNew" type="password" autocomplete="new-password"></div><div class="field"><label for="aNew2">もう一度入力</label><input id="aNew2" type="password" autocomplete="new-password"></div>' + err + '<button class="btn primary" id="aSave" type="submit" style="min-height:52px">設定してログイン</button>';
     }
-    return '<div class="auth"><header class="top"><div class="bar"><span class="brand">キョウモ テストB</span></div></header><form id="authForm" novalidate>' + body + '</form></div>';
+    return '<div class="auth"><header class="top"><div class="bar"><span class="brand">SATTO テストB</span></div></header><form id="authForm" novalidate>' + body + '</form></div>';
   }
   async function authSubmit() {
     const a = V.a, A = K.S.auth;

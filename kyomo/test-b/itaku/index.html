@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="テストB委託先">
 <link rel="apple-touch-icon" href="../assets/icon-180.png">
-<title>キョウモ テストB 委託先</title>
+<title>SATTO テストB 委託先</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -170,7 +170,7 @@ td .locd { display: block; font-size: 12px; color: var(--muted); }
     const wait = ['uniform', 'incam'].reduce((n, kind) => n + P.filter((p) => K.isTarget(kind, mk, p.id) && (K.invOf(kind, mk, p.id) || {}).status === 'wait').length, 0);
     const reqs = K.S.storeRequests.filter((r) => r.state === 'open' && r.itaku === K.S.itaku).length;
     const nav = [['today', '今日の報告', 'check', pending().length + (K.gpsOn(K.S.itaku) ? locPending().length : 0)], ['stores', '店舗', 'store', reqs], ['shift', 'シフト', 'grid', 0], ['stock', '棚卸し', 'box', wait], ['tasks', '提出物・お知らせ', 'list', 0], ['set', '設定', 'sliders', 0]];
-    $('side').innerHTML = '<span class="brand">キョウモ テストB</span><span class="role">委託先 ／ ' + esc(IT().name) + '</span><div class="navs">' +
+    $('side').innerHTML = '<span class="brand">SATTO テストB</span><span class="role">委託先 ／ ' + esc(IT().name) + '</span><div class="navs">' +
       nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[2], 20) + n[1] + (n[3] ? '<span class="n num">' + n[3] + '</span>' : '') + '</button>').join('') +
       '</div><div class="foot"><button class="proto-btn" data-sheet="demo">' + ic('sliders', 15) + '試作</button></div>';
   }

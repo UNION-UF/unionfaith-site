@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="apple-touch-icon" href="../assets/icon-180.png">
-<title>キョウモ 外回り 管理</title>
+<title>SATTO 外回り 管理</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -108,7 +108,7 @@ tr.cold td { background: var(--amber-soft); }
 
   function side() {
     const nav = [['today', '今日の動き'], ['reports', '訪問報告'], ['stores', '店舗の訪問状況'], ['set', '設定']];
-    $('side').innerHTML = '<span class="brand">キョウモ 外回り</span><span class="role">管理画面 ／ ' + esc(viewerName()) + '</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-sheet="demo">試作</button></div>';
+    $('side').innerHTML = '<span class="brand">SATTO 外回り</span><span class="role">管理画面 ／ ' + esc(viewerName()) + '</span><div class="navs">' + nav.map((n) => '<button class="nav" data-page="' + n[0] + '"' + (V.page === n[0] ? ' aria-current="page"' : '') + '>' + n[1] + '</button>').join('') + '</div><div class="foot"><button class="proto-btn" data-sheet="demo">試作</button></div>';
   }
   function areaChips(key, list) {
     const areas = F.AREAS.filter((a) => list.some((x) => x.area === a.id));

@@ -1,6 +1,6 @@
 {
-  "name": "キョウモ テストB",
-  "short_name": "テストB",
+  "name": "SATTO テストB",
+  "short_name": "SATTO",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
